@@ -24,7 +24,7 @@ func TestOutputReportTableToPR(t *testing.T) {
 			name: "test",
 			args: args{
 				repoPath: "mss-boot-io/workflow-tools-go",
-				number:   12,
+				number:   1,
 				list: []Matrix{
 					{
 						Name:        "service0",
