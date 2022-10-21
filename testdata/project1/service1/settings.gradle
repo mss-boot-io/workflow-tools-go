@@ -1,0 +1,3 @@
+rootProject.name = 'service1'
+includeBuild '../lib1'
+includeBuild '../lib2'

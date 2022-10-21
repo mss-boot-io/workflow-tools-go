@@ -1,0 +1,3 @@
+rootProject.name = 'service2-lambda'
+includeBuild '../lib1'
+includeBuild '../lib2'

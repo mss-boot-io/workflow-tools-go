@@ -1,0 +1,3 @@
+rootProject.name = 'service3-airflow'
+includeBuild '../lib1'
+includeBuild '../lib2'
