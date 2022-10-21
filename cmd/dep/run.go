@@ -117,7 +117,12 @@ func run() error {
 	dirs := make([]string, 0)
 	//获取change files list
 	var files change.Files
-	err = aws.GetObjectFromS3(region, bucket, change.GetFilename(repo, mark), &files)
+	switch storeProvider {
+	case "s3":
+		err = aws.GetObjectFromS3(region, bucket, change.GetFilename(repo, mark, storeProvider), &files)
+	default:
+		err = pkg.ReadJsonFile(change.GetFilename("", "", storeProvider), &files)
+	}
 	if err != nil {
 		log.Printf("cmd GetObjectFromS3 error: %s", err.Error())
 		return err
@@ -157,7 +162,7 @@ func run() error {
 		return aws.PutObjectToS3(region, bucket, key, &matrix, "application/json")
 	default:
 		//默认使用文件
-		err = pkg.CreatePath(filepath.Join("artifact", "workflow"))
+		err = pkg.CreatePath(filepath.Dir(key))
 		if err != nil {
 			return err
 		}
