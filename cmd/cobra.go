@@ -10,6 +10,7 @@ package cmd
 import (
 	"errors"
 	"github.com/mss-boot-io/workflow-tools/cmd/change"
+	"github.com/mss-boot-io/workflow-tools/cmd/gitops"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -40,6 +41,7 @@ func init() {
 	rootCmd.AddCommand(dep.StartCmd)
 	rootCmd.AddCommand(aws.StartCmd)
 	rootCmd.AddCommand(change.StartCmd)
+	rootCmd.AddCommand(gitops.StartCmd)
 }
 
 //Execute : apply commands

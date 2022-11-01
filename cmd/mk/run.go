@@ -11,13 +11,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mss-boot-io/workflow-tools/pkg/cdk8s"
+	"github.com/spf13/cast"
+	"github.com/spf13/cobra"
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
-
-	"github.com/spf13/cast"
-	"github.com/spf13/cobra"
 
 	"github.com/mss-boot-io/workflow-tools/pkg"
 	"github.com/mss-boot-io/workflow-tools/pkg/aws"
@@ -122,10 +120,7 @@ func init() {
 
 func run() error {
 	if !errorBlock {
-		switch strings.ToLower(os.Getenv("error_block")) {
-		case "t", "true", "1", "y", "yes":
-			errorBlock = true
-		}
+		errorBlock = cast.ToBool(os.Getenv("error_block"))
 	}
 	if serviceType == "" {
 		serviceType = dep.Service.String()
@@ -178,7 +173,8 @@ func run() error {
 			fmt.Printf("### generate[%s] %s's cdk8s\n", configStage, leafs[i].Name)
 			cdk8s.Generate(filepath.Join(filepath.Join(leafs[i].ProjectPath...), "deploy-config.yml"),
 				configStage,
-				fmt.Sprintf("%s/%s:%s", dockerOrg, leafs[i].Name, dockerTags))
+				fmt.Sprintf("%s/%s:%s", dockerOrg, leafs[i].Name, dockerTags),
+				leafs[i].ProjectPath)
 
 		}
 		if leafs[i].Err != nil {
