@@ -8,12 +8,14 @@
 package change
 
 import (
+	"github.com/mss-boot-io/workflow-tools/pkg"
 	"github.com/mss-boot-io/workflow-tools/pkg/aws"
 	"github.com/mss-boot-io/workflow-tools/pkg/change"
 	"github.com/mss-boot-io/workflow-tools/pkg/change/github"
 	"github.com/spf13/cobra"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -21,6 +23,7 @@ var (
 	provider,
 	accessToken,
 	mark,
+	storeProvider,
 	repo string
 	bucket, region string
 	StartCmd       = &cobra.Command{
@@ -38,6 +41,10 @@ var (
 )
 
 func init() {
+	StartCmd.PersistentFlags().StringVar(&storeProvider,
+		"store-provider",
+		"s3",
+		"store provider")
 	StartCmd.PersistentFlags().StringVar(&provider,
 		"provider", os.Getenv("provider"),
 		"code repository provider")
@@ -76,7 +83,18 @@ func run() error {
 			log.Printf("cmd ChangeFiles error: %s", err.Error())
 			return err
 		}
-		return aws.PutObjectToS3(region, bucket, change.GetFilename(repo, mark), *files, "")
+		key := change.GetFilename(repo, mark, storeProvider)
+		switch storeProvider {
+		case "s3":
+			return aws.PutObjectToS3(region, bucket, key, *files, "")
+		default:
+			//默认使用文件
+			err = pkg.CreatePath(filepath.Dir(key))
+			if err != nil {
+				return err
+			}
+			return pkg.WriteJsonFile(key, files)
+		}
 	default:
 		log.Fatalf("not support %s", provider)
 	}
