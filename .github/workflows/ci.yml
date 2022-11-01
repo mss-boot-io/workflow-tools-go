@@ -23,6 +23,10 @@ jobs:
       - name: Run tests with coverage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ARGOCD_URL: ${{ secrets.ARGOCD_URL }}
+          ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
+          ARGOCD_TEST_CLUSTER: ${{ secrets.ARGOCD_TEST_CLUSTER }}
+          ARGOCD_TEST_NAMESPACE: ${{ secrets.ARGOCD_TEST_NAMESPACE }}
         run: |
           go test -coverprofile=coverage.txt -v ./...
           go tool cover -html=coverage.txt
