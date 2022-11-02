@@ -41,7 +41,7 @@ func TestClient_CreateApplication(t *testing.T) {
 			args: args{
 				app: &appv1.Application{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "mss-boot-admin-alpha",
+						Name:      "mss-boot-admin-beta",
 						Namespace: "argocd",
 						Labels: map[string]string{
 							"Project": "devops",
@@ -50,7 +50,7 @@ func TestClient_CreateApplication(t *testing.T) {
 					Spec: appv1.ApplicationSpec{
 						Source: appv1.ApplicationSource{
 							RepoURL: "https://github.com/mss-boot-io/mss-boot-gitops",
-							Path:    "mss-boot-monorepo/alpha/admin",
+							Path:    "mss-boot-monorepo/beta/admin",
 						},
 						Destination: appv1.ApplicationDestination{
 							Name:      os.Getenv("ARGOCD_TEST_CLUSTER"),

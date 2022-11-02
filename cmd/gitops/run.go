@@ -123,7 +123,7 @@ func run() error {
 	if leaf != "" {
 		err = json.Unmarshal([]byte(leaf), &leafs)
 		if err != nil {
-			log.Println(err)
+			log.Printf("unmarshal leaf error: %v", err)
 			return err
 		}
 	} else {
@@ -134,7 +134,7 @@ func run() error {
 			err = pkg.ReadJsonFile(key, &leafs)
 		}
 		if err != nil {
-			log.Println(err)
+			log.Printf("get leafs from %s error: %v", key, err)
 			return err
 		}
 	}
@@ -195,11 +195,25 @@ func run() error {
 				leafs[i].Err = err
 				break
 			}
+			fmt.Printf("### create %s's %s stage application success\n", leafs[i].Name, stage)
 		}
+		fmt.Printf("### gitops config successed")
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
 	}
-	return nil
+	var failed bool
+	defer func() {
+		if failed {
+			os.Exit(-1)
+		}
+	}()
+	for i := range leafs {
+		if leafs[i].Err != nil {
+			failed = true
+			err = leafs[i].Err
+		}
+	}
+	return err
 }
