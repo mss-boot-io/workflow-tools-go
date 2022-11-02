@@ -178,7 +178,7 @@ func run() error {
 				namespace = stage
 			}
 			paths := make([]string, 0)
-			if strings.Index(leafs[i].Name, gitopsConfig.Project) > -1 {
+			if strings.Index(leafs[i].Name, gitopsConfig.Project) == -1 {
 				paths = append(paths, gitopsConfig.Project)
 			}
 			paths = append(paths, leafs[i].Name, stage)

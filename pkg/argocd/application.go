@@ -89,10 +89,7 @@ func (c *Client) createApplication(app *appv1.Application) error {
 		log.Println(string(rb))
 		return fmt.Errorf("create application %s failed, status code: %d", app.Name, response.StatusCode)
 	}
-	rb, _ := io.ReadAll(response.Body)
-	log.Println(string(rb))
-	err = json.Unmarshal(rb, app)
-	//err = json.NewDecoder(response.Body).Decode(app)
+	err = json.NewDecoder(response.Body).Decode(app)
 	if err != nil {
 		log.Printf("decode response failed, err: %v", err)
 		return err
