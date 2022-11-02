@@ -8,15 +8,22 @@
 package gitops
 
 import (
+	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
 
 // Config : config
 type Config struct {
-	Project string                 `yaml:"project" json:"project"`
-	Stage   map[string]StageDeploy `yaml:"stage" json:"stage"`
+	Image   string `yaml:"image" json:"image"`
+	Project string `yaml:"project" json:"project"`
+	Deploy  Deploy `yaml:"deploy" json:"deploy"`
+}
+
+type Deploy struct {
+	Stage map[string]StageDeploy `yaml:"stage" json:"stage"`
 }
 
 // StageDeploy : stage deploy
@@ -26,12 +33,17 @@ type StageDeploy struct {
 	AutoSync  bool   `yaml:"autoSync" json:"autoSync"`
 }
 
+// GetImage : get image
+func (c *Config) GetImage(service string) string {
+	if len(strings.Split(c.Image, "/")) > 1 {
+		return c.Image
+	}
+	return fmt.Sprintf("%s/%s", c.Image, service)
+}
+
 // LoadFile : load file
 func LoadFile(path string) (*Config, error) {
-	config := struct {
-		Deploy  Config `yaml:"deploy" json:"deploy"`
-		Project string `yaml:"project" json:"project"`
-	}{}
+	config := &Config{}
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -41,6 +53,5 @@ func LoadFile(path string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	config.Deploy.Project = config.Project
-	return &config.Deploy, nil
+	return config, nil
 }

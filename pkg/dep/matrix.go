@@ -63,7 +63,7 @@ func (e *Matrix) LanguageString() string {
 	return strings.Join(languages, ",")
 }
 
-func (e *Matrix) Run(workspace, cs, dockerOrg, dockerTags string, dockerPush bool) error {
+func (e *Matrix) Run(workspace, cs, dockerImage, dockerTags string, dockerPush bool) error {
 	if len(e.ProjectPath) == 0 {
 		e.ProjectPath = []string{e.Name}
 	}
@@ -72,8 +72,8 @@ func (e *Matrix) Run(workspace, cs, dockerOrg, dockerTags string, dockerPush boo
 	} else {
 		cs = fmt.Sprintf("cd %s && %s", filepath.Join(e.ProjectPath...), cs)
 	}
-	if dockerOrg != "" {
-		cs += fmt.Sprintf(" && docker build -t %s/%s:latest .", dockerOrg, e.Name)
+	if dockerImage != "" {
+		cs += fmt.Sprintf(" && docker build -t %s:latest .", dockerImage)
 	}
 	if dockerTags != "" {
 		var pushLatest bool
@@ -81,13 +81,13 @@ func (e *Matrix) Run(workspace, cs, dockerOrg, dockerTags string, dockerPush boo
 			if strings.Index(tag, "v") > -1 && len(tag) < 10 {
 				pushLatest = true
 			}
-			cs += fmt.Sprintf(" && docker tag %s/%s:latest %s/%s:%s", dockerOrg, e.Name, dockerOrg, e.Name, tag)
+			cs += fmt.Sprintf(" && docker tag %s:latest %s:%s", dockerImage, dockerImage, tag)
 			if dockerPush {
-				cs += fmt.Sprintf(" && docker push %s/%s:%s", dockerOrg, e.Name, tag)
+				cs += fmt.Sprintf(" && docker push %s:%s", dockerImage, tag)
 			}
 		}
 		if pushLatest && dockerPush {
-			cs += fmt.Sprintf(" && docker push %s/%s:latest", dockerOrg, e.Name)
+			cs += fmt.Sprintf(" && docker push %s:latest", dockerImage)
 		}
 	}
 	cmd := exec.Command("/bin/bash", "-c", cs)

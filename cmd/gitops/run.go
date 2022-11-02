@@ -168,7 +168,7 @@ func run() error {
 			return err
 		}
 		argocdClient := argocd.New(argocdURL, argocdToken, nil)
-		for stage := range gitopsConfig.Stage {
+		for stage := range gitopsConfig.Deploy.Stage {
 			switch stage {
 			case "prod", "production":
 				switch configStage {
@@ -185,7 +185,7 @@ func run() error {
 					fmt.Printf("###   \n")
 				}
 			}
-			namespace := gitopsConfig.Stage[stage].Namespace
+			namespace := gitopsConfig.Deploy.Stage[stage].Namespace
 			if namespace == "" {
 				namespace = stage
 			}
@@ -209,12 +209,12 @@ func run() error {
 						Path:    fmt.Sprintf("%s/%s", configStage, strings.Join(leafs[i].ProjectPath, "/")),
 					},
 					Destination: appv1.ApplicationDestination{
-						Name:      gitopsConfig.Stage[stage].Cluster,
+						Name:      gitopsConfig.Deploy.Stage[stage].Cluster,
 						Namespace: namespace,
 					},
 				},
 			}
-			if gitopsConfig.Stage[stage].AutoSync {
+			if gitopsConfig.Deploy.Stage[stage].AutoSync {
 				app.Spec.SyncPolicy = &appv1.SyncPolicy{
 					Automated: &appv1.SyncPolicyAutomated{
 						Prune:      true,

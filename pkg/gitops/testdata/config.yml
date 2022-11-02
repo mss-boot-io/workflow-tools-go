@@ -12,6 +12,7 @@ hpa: false
 config:
   - name: mss-boot-generator-config
     path: /app/cfg
+image: mssbootio/admin
 deploy:
   stage:
     alpha:
