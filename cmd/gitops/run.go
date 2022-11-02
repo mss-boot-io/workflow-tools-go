@@ -9,6 +9,7 @@ package gitops
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -116,6 +117,12 @@ func run() error {
 	if !errorBlock {
 		errorBlock = cast.ToBool(os.Getenv("error_block"))
 	}
+	var failed bool
+	defer func() {
+		if failed {
+			os.Exit(-1)
+		}
+	}()
 	serviceType := dep.Service.String()
 	leafs := make([]dep.Matrix, 0)
 	var err error
@@ -144,11 +151,16 @@ func run() error {
 		}
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
 		var gitopsConfig *gitops.Config
-		fmt.Print("###   ")
+		fmt.Print("###   \n")
 		gitopsConfig, leafs[i].Err = gitops.LoadFile(filepath.Join(filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
 		if leafs[i].Err != nil {
 			fmt.Printf("### load %s's gitops config file error: %s\n", leafs[i].Name, leafs[i].Err)
 			continue
+		}
+		if argocdURL == "" || argocdToken == "" {
+			failed = true
+			err = errors.New("argocd url or token is empty")
+			return err
 		}
 		argocdClient := argocd.New(argocdURL, argocdToken, nil)
 		for stage := range gitopsConfig.Stage {
@@ -197,18 +209,13 @@ func run() error {
 			}
 			fmt.Printf("### create %s's %s stage application success\n", leafs[i].Name, stage)
 		}
-		fmt.Printf("### gitops config successed")
+		fmt.Printf("### gitops config successed\n")
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
 	}
-	var failed bool
-	defer func() {
-		if failed {
-			os.Exit(-1)
-		}
-	}()
+
 	for i := range leafs {
 		if leafs[i].Err != nil {
 			failed = true
