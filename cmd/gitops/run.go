@@ -9,6 +9,7 @@ package gitops
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -37,6 +38,7 @@ var (
 	argocdURL,
 	argocdToken,
 	argocdProject,
+	argocdNamespace,
 	gitopsRepo,
 	gitopsBranch,
 	gitopsConfigFile,
@@ -73,6 +75,10 @@ func init() {
 		"argocd-project",
 		os.Getenv("argocd_project"),
 		"argocd project")
+	StartCmd.PersistentFlags().StringVar(&argocdNamespace,
+		"argocd-namespace",
+		"argocd",
+		"argocd namespace")
 	StartCmd.PersistentFlags().StringVar(&gitopsRepo,
 		"gitops-repo",
 		os.Getenv("gitops_repo"),
@@ -116,6 +122,12 @@ func run() error {
 	if !errorBlock {
 		errorBlock = cast.ToBool(os.Getenv("error_block"))
 	}
+	var failed bool
+	defer func() {
+		if failed {
+			os.Exit(-1)
+		}
+	}()
 	serviceType := dep.Service.String()
 	leafs := make([]dep.Matrix, 0)
 	var err error
@@ -123,7 +135,7 @@ func run() error {
 	if leaf != "" {
 		err = json.Unmarshal([]byte(leaf), &leafs)
 		if err != nil {
-			log.Println(err)
+			log.Printf("unmarshal leaf error: %v", err)
 			return err
 		}
 	} else {
@@ -134,7 +146,7 @@ func run() error {
 			err = pkg.ReadJsonFile(key, &leafs)
 		}
 		if err != nil {
-			log.Println(err)
+			log.Printf("get leafs from %s error: %v", key, err)
 			return err
 		}
 	}
@@ -144,11 +156,16 @@ func run() error {
 		}
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
 		var gitopsConfig *gitops.Config
-		fmt.Print("###   ")
+		fmt.Print("###   \n")
 		gitopsConfig, leafs[i].Err = gitops.LoadFile(filepath.Join(filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
 		if leafs[i].Err != nil {
 			fmt.Printf("### load %s's gitops config file error: %s\n", leafs[i].Name, leafs[i].Err)
 			continue
+		}
+		if argocdURL == "" || argocdToken == "" {
+			failed = true
+			err = errors.New("argocd url or token is empty")
+			return err
 		}
 		argocdClient := argocd.New(argocdURL, argocdToken, nil)
 		for stage := range gitopsConfig.Stage {
@@ -160,10 +177,15 @@ func run() error {
 			if namespace == "" {
 				namespace = stage
 			}
+			paths := make([]string, 0)
+			if gitopsConfig.Project != "" && strings.Index(leafs[i].Name, gitopsConfig.Project) == -1 {
+				paths = append(paths, gitopsConfig.Project)
+			}
+			paths = append(paths, leafs[i].Name, stage)
 			app := &appv1.Application{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      fmt.Sprintf("%s-%s", leafs[i].Name, stage),
-					Namespace: gitopsConfig.Stage[stage].Namespace,
+					Name:      strings.Join(paths, "-"),
+					Namespace: argocdNamespace,
 					Labels: map[string]string{
 						"Project": gitopsConfig.Project,
 					},
@@ -195,11 +217,20 @@ func run() error {
 				leafs[i].Err = err
 				break
 			}
+			fmt.Printf("### create %s's %s stage application success\n", leafs[i].Name, stage)
 		}
+		fmt.Printf("### gitops config successed\n")
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
 	}
-	return nil
+
+	for i := range leafs {
+		if leafs[i].Err != nil {
+			failed = true
+			err = leafs[i].Err
+		}
+	}
+	return err
 }

@@ -16,7 +16,7 @@ import (
 // Config : config
 type Config struct {
 	Project string                 `yaml:"project" json:"project"`
-	Stage   map[string]StageDeploy `yaml:"deploy" json:"deploy"`
+	Stage   map[string]StageDeploy `yaml:"stage" json:"stage"`
 }
 
 // StageDeploy : stage deploy
@@ -32,7 +32,7 @@ func LoadFile(path string) (*Config, error) {
 		Deploy  Config `yaml:"deploy" json:"deploy"`
 		Project string `yaml:"project" json:"project"`
 	}{}
-	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}

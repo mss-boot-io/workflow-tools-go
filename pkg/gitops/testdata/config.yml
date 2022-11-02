@@ -1,0 +1,26 @@
+project: mss-boot
+service: generator
+ports:
+  - port: 8081
+    targetPort: 8081
+    name: http
+metrics:
+  scrape: true
+  port: 5000
+  path: /metrics
+hpa: false
+config:
+  - name: mss-boot-generator-config
+    path: /app/cfg
+deploy:
+  stage:
+    alpha:
+      cluster: matrix-devops
+      namespace: alpha
+      autoSync: true
+    beta:
+      cluster: matrix-devops
+      namespace: beta
+    prod:
+      cluster: matrix-devops
+      namespace: prod

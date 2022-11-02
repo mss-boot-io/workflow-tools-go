@@ -15,11 +15,15 @@ type Client struct {
 	client *http.Client
 }
 
+func (c *Client) GetClient() *http.Client {
+	if c.client == nil {
+		return http.DefaultClient
+	}
+	return &(*c.client)
+}
+
 // New create a new argocd client
 func New(url, token string, client *http.Client) *Client {
-	if client == nil {
-		client = http.DefaultClient
-	}
 	return &Client{
 		url:    url,
 		token:  token,
