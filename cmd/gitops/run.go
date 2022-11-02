@@ -38,6 +38,7 @@ var (
 	argocdURL,
 	argocdToken,
 	argocdProject,
+	argocdNamespace,
 	gitopsRepo,
 	gitopsBranch,
 	gitopsConfigFile,
@@ -74,6 +75,10 @@ func init() {
 		"argocd-project",
 		os.Getenv("argocd_project"),
 		"argocd project")
+	StartCmd.PersistentFlags().StringVar(&argocdNamespace,
+		"argocd-namespace",
+		"argocd",
+		"argocd namespace")
 	StartCmd.PersistentFlags().StringVar(&gitopsRepo,
 		"gitops-repo",
 		os.Getenv("gitops_repo"),
@@ -180,7 +185,7 @@ func run() error {
 			app := &appv1.Application{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      strings.Join(paths, "-"),
-					Namespace: gitopsConfig.Stage[stage].Namespace,
+					Namespace: argocdNamespace,
 					Labels: map[string]string{
 						"Project": gitopsConfig.Project,
 					},
