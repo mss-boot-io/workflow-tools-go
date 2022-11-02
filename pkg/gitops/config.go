@@ -17,12 +17,12 @@ import (
 
 // Config : config
 type Config struct {
-	Image   string `yaml:"image" json:"image"`
 	Project string `yaml:"project" json:"project"`
 	Deploy  Deploy `yaml:"deploy" json:"deploy"`
 }
 
 type Deploy struct {
+	Image string                 `yaml:"image" json:"image"`
 	Stage map[string]StageDeploy `yaml:"stage" json:"stage"`
 }
 
@@ -35,10 +35,10 @@ type StageDeploy struct {
 
 // GetImage : get image
 func (c *Config) GetImage(service string) string {
-	if len(strings.Split(c.Image, "/")) > 1 {
-		return c.Image
+	if len(strings.Split(c.Deploy.Image, "/")) > 1 {
+		return c.Deploy.Image
 	}
-	return fmt.Sprintf("%s/%s", c.Image, service)
+	return fmt.Sprintf("%s/%s", c.Deploy.Image, service)
 }
 
 // LoadFile : load file
