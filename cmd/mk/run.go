@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/mss-boot-io/workflow-tools/pkg/cdk8s"
+	"github.com/mss-boot-io/workflow-tools/pkg/gitops"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"log"
@@ -32,9 +33,9 @@ var (
 	uploadCache,
 	workspace,
 	reportTableFile,
-	dockerOrg,
 	dockerTags,
 	configStage,
+	gitopsConfigFile,
 	serviceType string
 	errorBlock    bool
 	dockerPush    bool
@@ -55,6 +56,10 @@ var (
 )
 
 func init() {
+	StartCmd.PersistentFlags().StringVar(&gitopsConfigFile,
+		"gitops-config-file",
+		"deploy-config.yml",
+		"gitops config file name")
 	StartCmd.PersistentFlags().StringVar(&storeProvider,
 		"store-provider",
 		"s3",
@@ -101,9 +106,6 @@ func init() {
 	StartCmd.PersistentFlags().StringVar(&mark,
 		"mark", os.Getenv("mark"),
 		"commit sha or pull request number")
-	StartCmd.PersistentFlags().StringVar(&dockerOrg,
-		"docker-org", os.Getenv("docker_organize"),
-		"docker org")
 	StartCmd.PersistentFlags().BoolVar(&dockerPush,
 		"docker-push", false,
 		"docker push")
@@ -166,14 +168,20 @@ func run() error {
 			continue
 		}
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
-		leafs[i].Err = leafs[i].Run(workspace, os.Getenv("cmd"), dockerOrg, dockerTags, dockerPush)
+		var gitopsConfig *gitops.Config
+		gitopsConfig, leafs[i].Err = gitops.LoadFile(filepath.Join(filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
+		if leafs[i].Err != nil && errorBlock {
+			break
+		}
+		dockerImage := gitopsConfig.GetImage(leafs[i].Name)
+		leafs[i].Err = leafs[i].Run(workspace, os.Getenv("cmd"), dockerImage, dockerTags, dockerPush)
 		leafs[i].Finish = true
 		fmt.Print("###   ")
 		if leafs[i].Err == nil && generateCDK8S {
 			fmt.Printf("### generate[%s] %s's cdk8s\n", configStage, leafs[i].Name)
 			cdk8s.Generate(filepath.Join(filepath.Join(leafs[i].ProjectPath...), "deploy-config.yml"),
 				configStage,
-				fmt.Sprintf("%s/%s:%s", dockerOrg, leafs[i].Name, dockerTags),
+				fmt.Sprintf("%s:%s", dockerImage, dockerTags),
 				leafs[i].ProjectPath)
 
 		}
