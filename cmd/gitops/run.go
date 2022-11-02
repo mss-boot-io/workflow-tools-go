@@ -172,9 +172,14 @@ func run() error {
 			if namespace == "" {
 				namespace = stage
 			}
+			paths := make([]string, 0)
+			if strings.Index(leafs[i].Name, gitopsConfig.Project) > -1 {
+				paths = append(paths, gitopsConfig.Project)
+			}
+			paths = append(paths, leafs[i].Name, stage)
 			app := &appv1.Application{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      fmt.Sprintf("%s-%s", leafs[i].Name, stage),
+					Name:      strings.Join(paths, "-"),
 					Namespace: gitopsConfig.Stage[stage].Namespace,
 					Labels: map[string]string{
 						"Project": gitopsConfig.Project,
