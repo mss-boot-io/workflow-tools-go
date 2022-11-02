@@ -40,6 +40,7 @@ var (
 		SilenceUsage: true,
 		PreRun: func(_ *cobra.Command, _ []string) {
 			log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+			preRun()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run()
@@ -128,6 +129,9 @@ func run() error {
 		return err
 	}
 	ignores := strings.Split(ignorePaths, ",")
+	if ignorePaths == "" {
+		ignores = nil
+	}
 	changeFiles := make([]string, 0)
 	changeFiles = append(changeFiles, files.Modified...)
 	changeFiles = append(changeFiles, files.Added...)
