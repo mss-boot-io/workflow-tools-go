@@ -67,6 +67,7 @@ jobs:
     #if: startsWith(github.ref, 'refs/tags/')
     needs: ci
     steps:
+      - uses: actions/checkout@v3
       - name: Download binary
         uses: actions/download-artifact@v3
         with:
