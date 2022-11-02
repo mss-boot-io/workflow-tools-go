@@ -83,6 +83,15 @@ func (e *Matrix) Run(workspace, cs, dockerImage, dockerTags string, dockerPush b
 			}
 			cs += fmt.Sprintf(" && docker tag %s:latest %s:%s", dockerImage, dockerImage, tag)
 			if dockerPush {
+				if strings.Index(dockerImage, "amazonaws.com") > -1 {
+					// aws ecr
+					arr := strings.Split(dockerImage, ".")
+					account, region := arr[0], arr[3]
+					cs += fmt.Sprintf(
+						" && aws ecr get-login-password --region %s |"+
+							" docker login --username AWS --password-stdin %s.dkr.ecr.%s.amazonaws.com",
+						region, account, region)
+				}
 				cs += fmt.Sprintf(" && docker push %s:%s", dockerImage, tag)
 			}
 		}
