@@ -11,15 +11,15 @@ on:
       - main
 
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v3
+      - name: Setup
+        uses: actions/setup-go@v3
         with:
           go-version: '1.18'
+          cache: true
       - name: Run tests with coverage
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -30,19 +30,65 @@ jobs:
         run: |
           go test -coverprofile=coverage.txt -v ./...
           go tool cover -html=coverage.txt
-      - name: Run build
-        run: |
-          go build -o bin/workflow-tools .
-
-      - id: tag
-        if: startsWith(github.ref, 'refs/tags/')
+  ci:
+    needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    strategy:
+      matrix:
+        os: [ linux, darwin, windows ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.18'
+          cache: true
+      - name: New Artifact Dir
+        run: mkdir artifact
+      - name: Build ${{ matrix.os }}
         env:
-          ref: ${{ github.ref }}
-        run: echo "::set-output name=tag::${ref##*/}"
+          CGO_ENABLED: 0
+          GOOS: ${{ matrix.os }}
+          GOARCH: amd64
+        run: |
+          if [ ${GOOS} == windows ];then
+            export app=workflow-tools.exe
+          else
+            export app=workflow-tools
+          fi
+          go build -o ${app} .
+          tar -zcvf ${GOOS}_${GOARCH}.tar.gz ./${app}
+          rm -rf ./${app}
+          mv ${GOOS}_${GOARCH}.tar.gz artifact
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: binary
+          path: ${{ github.workspace }}/artifact
+          if-no-files-found: error
+
+
+  release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [ test, ci ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download binary
+        uses: actions/download-artifact@v3
+        with:
+          name: binary
+          path: public/
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
+          body_path: README.md
           files: |
-            bin/workflow-tools
+            public/linux_amd64.tar.gz
+            public/windows_amd64.tar.gz
+            public/darwin_amd64.tar.gz
