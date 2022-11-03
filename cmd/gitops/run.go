@@ -135,7 +135,7 @@ func run() error {
 	if leaf != "" {
 		err = json.Unmarshal([]byte(leaf), &leafs)
 		if err != nil {
-			log.Printf("unmarshal leaf error: %v", err)
+			fmt.Printf("unmarshal leaf error: %s\n", err.Error())
 			return err
 		}
 	} else {
@@ -146,7 +146,7 @@ func run() error {
 			err = pkg.ReadJsonFile(key, &leafs)
 		}
 		if err != nil {
-			log.Printf("get leafs from %s error: %v", key, err)
+			fmt.Printf("get leafs from %s error: %s\n", key, err.Error())
 			return err
 		}
 	}
