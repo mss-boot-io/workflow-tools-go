@@ -185,7 +185,7 @@ func run() error {
 					fmt.Printf("###   \n")
 				}
 			}
-			namespace := gitopsConfig.Deploy.Stage[stage].Namespace
+			namespace := gitopsConfig.Deploy.Stage[stage].GetKey("namespace")
 			if namespace == "" {
 				namespace = stage
 			}
@@ -210,12 +210,12 @@ func run() error {
 						TargetRevision: gitopsBranch,
 					},
 					Destination: appv1.ApplicationDestination{
-						Name:      gitopsConfig.Deploy.Stage[stage].Cluster,
-						Namespace: namespace,
+						Name:      cast.ToString(gitopsConfig.Deploy.Stage[stage].GetKey("cluster")),
+						Namespace: cast.ToString(namespace),
 					},
 				},
 			}
-			if gitopsConfig.Deploy.Stage[stage].AutoSync {
+			if cast.ToBool(gitopsConfig.Deploy.Stage[stage].GetKey("autoSync")) {
 				app.Spec.SyncPolicy = &appv1.SyncPolicy{
 					Automated: &appv1.SyncPolicyAutomated{
 						Prune:      true,

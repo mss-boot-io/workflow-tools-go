@@ -8,9 +8,11 @@
 package gitops
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
+	"text/template"
 
 	"gopkg.in/yaml.v2"
 )
@@ -26,12 +28,35 @@ type Deploy struct {
 	Stage map[string]StageDeploy `yaml:"stage" json:"stage"`
 }
 
-// StageDeploy : stage deploy
-type StageDeploy struct {
-	Cluster   string `yaml:"cluster" json:"cluster"`
-	Namespace string `yaml:"namespace" json:"namespace"`
-	AutoSync  bool   `yaml:"autoSync" json:"autoSync"`
+type StageDeploy map[string]any
+
+func (s StageDeploy) GetKey(key string) any {
+	v, ok := s[key]
+	if !ok {
+		return ""
+	}
+	return v
 }
+
+// ParseTemplate : parse template
+func (s StageDeploy) ParseTemplate(tmp string) (string, error) {
+	var err error
+	t := template.New(tmp)
+	t, err = t.Parse(tmp)
+	if err != nil {
+		return "", err
+	}
+	var buffer bytes.Buffer
+	err = t.Execute(&buffer, s)
+	return buffer.String(), err
+}
+
+// StageDeploy : stage deploy
+//type StageDeploy struct {
+//	Cluster   string `yaml:"cluster" json:"cluster"`
+//	Namespace string `yaml:"namespace" json:"namespace"`
+//	AutoSync  bool   `yaml:"autoSync" json:"autoSync"`
+//}
 
 // GetImage : get image
 func (c *Config) GetImage(service string) string {
