@@ -68,6 +68,7 @@ func (c *Client) createApplication(app *appv1.Application) error {
 	url := fmt.Sprintf("%s/api/v1/applications", c.url)
 	method := http.MethodPost
 	//log.Printf("method %s, url %s", method, url)
+	fmt.Println(buf.String())
 	request, err := http.NewRequest(method, url, buf)
 	if err != nil {
 		log.Printf("request failed, err: %v", err)
