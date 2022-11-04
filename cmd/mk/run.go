@@ -176,16 +176,9 @@ func run() error {
 			break
 		}
 		var cmd string
-		if leafs[i].Type == dep.Service {
-			cmd = os.Getenv("cmd")
-		} else {
+		if leafs[i].Type != dep.Service && os.Getenv(fmt.Sprintf("%s_cmd", leafs[i].Type.String())) != "" {
 			// get service type cmd
 			cmd = os.Getenv(fmt.Sprintf("%s_cmd", leafs[i].Type.String()))
-			if cmd == "" {
-				fmt.Printf("######################## %s ########################\n", "Skip")
-				fmt.Printf("######################## %s ########################\n", leafs[i].Name)
-				continue
-			}
 			var stage string
 			switch configStage {
 			case "prod":
@@ -204,7 +197,12 @@ func run() error {
 			if leafs[i].Err != nil && errorBlock {
 				break
 			}
+
 		}
+		if cmd != "" {
+			cmd = "&" + cmd
+		}
+		cmd = os.Getenv("cmd") + cmd
 
 		dockerImage := gitopsConfig.GetImage(leafs[i].Name)
 		leafs[i].Err = leafs[i].Run(workspace, os.Getenv("cmd"), dockerImage, dockerTags, dockerPush)
