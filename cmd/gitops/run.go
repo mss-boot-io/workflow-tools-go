@@ -135,7 +135,7 @@ func run() error {
 	if leaf != "" {
 		err = json.Unmarshal([]byte(leaf), &leafs)
 		if err != nil {
-			log.Printf("unmarshal leaf error: %v", err)
+			fmt.Printf("unmarshal leaf error: %s\n", err.Error())
 			return err
 		}
 	} else {
@@ -146,7 +146,7 @@ func run() error {
 			err = pkg.ReadJsonFile(key, &leafs)
 		}
 		if err != nil {
-			log.Printf("get leafs from %s error: %v", key, err)
+			fmt.Printf("get leafs from %s error: %s\n", key, err.Error())
 			return err
 		}
 	}
@@ -185,7 +185,7 @@ func run() error {
 					fmt.Printf("###   \n")
 				}
 			}
-			namespace := gitopsConfig.Deploy.Stage[stage].Namespace
+			namespace := gitopsConfig.Deploy.Stage[stage].GetKey("namespace")
 			if namespace == "" {
 				namespace = stage
 			}
@@ -205,16 +205,17 @@ func run() error {
 				Spec: appv1.ApplicationSpec{
 					Project: argocdProject,
 					Source: appv1.ApplicationSource{
-						RepoURL: gitopsRepo,
-						Path:    fmt.Sprintf("%s/%s", configStage, strings.Join(leafs[i].ProjectPath, "/")),
+						RepoURL:        gitopsRepo,
+						Path:           fmt.Sprintf("%s/%s", configStage, strings.Join(leafs[i].ProjectPath, "/")),
+						TargetRevision: gitopsBranch,
 					},
 					Destination: appv1.ApplicationDestination{
-						Name:      gitopsConfig.Deploy.Stage[stage].Cluster,
-						Namespace: namespace,
+						Name:      cast.ToString(gitopsConfig.Deploy.Stage[stage].GetKey("cluster")),
+						Namespace: cast.ToString(namespace),
 					},
 				},
 			}
-			if gitopsConfig.Deploy.Stage[stage].AutoSync {
+			if cast.ToBool(gitopsConfig.Deploy.Stage[stage].GetKey("autoSync")) {
 				app.Spec.SyncPolicy = &appv1.SyncPolicy{
 					Automated: &appv1.SyncPolicyAutomated{
 						Prune:      true,

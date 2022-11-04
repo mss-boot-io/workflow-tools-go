@@ -17,6 +17,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/mss-boot-io/workflow-tools/pkg"
 	"github.com/mss-boot-io/workflow-tools/pkg/aws"
@@ -164,15 +165,45 @@ func run() error {
 		fmt.Printf("######################## %s ########################\n", "Download Cache Finished")
 	}
 	for i := range leafs {
-		if leafs[i].Type.String() != serviceType {
+		if strings.Index(serviceType, leafs[i].Type.String()) == -1 {
 			continue
 		}
+
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
 		var gitopsConfig *gitops.Config
 		gitopsConfig, leafs[i].Err = gitops.LoadFile(filepath.Join(filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
+		var cmd string
+		if leafs[i].Type != dep.Service && os.Getenv(fmt.Sprintf("%s_cmd", leafs[i].Type.String())) != "" {
+			// get service type cmd
+			cmd = os.Getenv(fmt.Sprintf("%s_cmd", leafs[i].Type.String()))
+			var stage string
+			switch configStage {
+			case "prod":
+				stage = "prod"
+			default:
+				stage = "alpha"
+			}
+			stageDeploy, ok := gitopsConfig.Deploy.Stage[stage]
+			if !ok {
+				leafs[i].Err = fmt.Errorf("%s stage not found", stage)
+				if errorBlock {
+					break
+				}
+			}
+			cmd, leafs[i].Err = stageDeploy.ParseTemplate(cmd)
+			if leafs[i].Err != nil && errorBlock {
+				break
+			}
+
+		}
+		if cmd != "" {
+			cmd = "&" + cmd
+		}
+		cmd = os.Getenv("cmd") + cmd
+
 		dockerImage := gitopsConfig.GetImage(leafs[i].Name)
 		leafs[i].Err = leafs[i].Run(workspace, os.Getenv("cmd"), dockerImage, dockerTags, dockerPush)
 		leafs[i].Finish = true

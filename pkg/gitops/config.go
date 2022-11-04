@@ -8,37 +8,65 @@
 package gitops
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
+	"text/template"
 
 	"gopkg.in/yaml.v2"
 )
 
 // Config : config
 type Config struct {
-	Image   string `yaml:"image" json:"image"`
 	Project string `yaml:"project" json:"project"`
 	Deploy  Deploy `yaml:"deploy" json:"deploy"`
 }
 
 type Deploy struct {
+	Image string                 `yaml:"image" json:"image"`
 	Stage map[string]StageDeploy `yaml:"stage" json:"stage"`
 }
 
-// StageDeploy : stage deploy
-type StageDeploy struct {
-	Cluster   string `yaml:"cluster" json:"cluster"`
-	Namespace string `yaml:"namespace" json:"namespace"`
-	AutoSync  bool   `yaml:"autoSync" json:"autoSync"`
+type StageDeploy map[string]any
+
+func (s StageDeploy) GetKey(key string) any {
+	v, ok := s[key]
+	if !ok {
+		return ""
+	}
+	return v
 }
+
+// ParseTemplate : parse template
+func (s StageDeploy) ParseTemplate(tmp string) (string, error) {
+	var err error
+	t := template.New(tmp)
+	t, err = t.Parse(tmp)
+	if err != nil {
+		return "", err
+	}
+	var buffer bytes.Buffer
+	err = t.Execute(&buffer, s)
+	return buffer.String(), err
+}
+
+// StageDeploy : stage deploy
+//type StageDeploy struct {
+//	Cluster   string `yaml:"cluster" json:"cluster"`
+//	Namespace string `yaml:"namespace" json:"namespace"`
+//	AutoSync  bool   `yaml:"autoSync" json:"autoSync"`
+//}
 
 // GetImage : get image
 func (c *Config) GetImage(service string) string {
-	if len(strings.Split(c.Image, "/")) > 1 {
-		return c.Image
+	if c.Deploy.Image != "" {
+		return ""
 	}
-	return fmt.Sprintf("%s/%s", c.Image, service)
+	if len(strings.Split(c.Deploy.Image, "/")) > 1 {
+		return c.Deploy.Image
+	}
+	return fmt.Sprintf("%s/%s", c.Deploy.Image, service)
 }
 
 // LoadFile : load file

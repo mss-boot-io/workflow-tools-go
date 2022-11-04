@@ -26,33 +26,33 @@ func (c *Client) existApplication(app *appv1.Application) bool {
 		fmt.Sprintf("%s/api/v1/applications/%s", c.url, name),
 		nil)
 	if err != nil {
-		log.Printf("create request failed, err: %v", err)
+		fmt.Printf("create request failed, err: %s\n", err.Error())
 		return false
 	}
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
 	response, err := c.GetClient().Do(request)
 	if err != nil {
-		log.Printf("request failed, err: %v", err)
+		fmt.Printf("request failed, err: %s\n", err.Error())
 		return false
 	}
 	defer response.Body.Close()
 	if response.StatusCode == http.StatusNotFound {
-		log.Printf("application %s not found", name)
+		fmt.Printf("application %s not found\n", name)
 		return false
 	}
 	newApp := &appv1.Application{}
 	err = json.NewDecoder(response.Body).Decode(newApp)
 	if err != nil {
-		log.Printf("decode response failed, err: %v", err)
+		fmt.Printf("decode response failed, err: %s\n", err)
 		return false
 	}
 	return name == app.Name
 }
 
 func (c *Client) CreateApplication(app *appv1.Application) error {
-	log.Printf("create application %s start \n", app.Name)
+	fmt.Printf("create application %s start \n", app.Name)
 	if c.existApplication(app) {
-		log.Printf("application %s already exists \n", app.Name)
+		fmt.Printf("application %s already exists \n", app.Name)
 		return nil
 	}
 	return c.createApplication(app)
@@ -67,10 +67,10 @@ func (c *Client) createApplication(app *appv1.Application) error {
 	}
 	url := fmt.Sprintf("%s/api/v1/applications", c.url)
 	method := http.MethodPost
-	//log.Printf("method %s, url %s", method, url)
+	fmt.Println(buf.String())
 	request, err := http.NewRequest(method, url, buf)
 	if err != nil {
-		log.Printf("request failed, err: %v", err)
+		fmt.Printf("request failed, err: %s\n", err.Error())
 		return err
 	}
 	request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.token))
@@ -78,20 +78,20 @@ func (c *Client) createApplication(app *appv1.Application) error {
 	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
-		log.Printf("request failed, err: %v", err)
+		fmt.Printf("request failed, err: %s\n", err.Error())
 		return err
 	}
 	defer response.Body.Close()
-	log.Printf("create application %s response status code %d", app.Name, response.StatusCode)
+	fmt.Printf("create application %s response status code %d\n", app.Name, response.StatusCode)
 	if response.StatusCode != http.StatusOK {
-		log.Printf("create application %s failed, status code: %d", app.Name, response.StatusCode)
+		fmt.Printf("create application %s failed, status code: %d\n", app.Name, response.StatusCode)
 		rb, _ := io.ReadAll(response.Body)
 		log.Println(string(rb))
 		return fmt.Errorf("create application %s failed, status code: %d", app.Name, response.StatusCode)
 	}
 	err = json.NewDecoder(response.Body).Decode(app)
 	if err != nil {
-		log.Printf("decode response failed, err: %v", err)
+		fmt.Printf("decode response failed, err: %s\n", err.Error())
 		return err
 	}
 	return nil
