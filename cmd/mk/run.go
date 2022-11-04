@@ -208,6 +208,7 @@ func run() error {
 			cmd = "&" + cmd
 		}
 		cmd = os.Getenv("cmd") + cmd
+		fmt.Printf("### cmd: %s\n", cmd)
 
 		leafs[i].Err = leafs[i].Run(workspace, os.Getenv("cmd"), dockerImage, dockerTags, dockerPush)
 		leafs[i].Finish = true
@@ -253,9 +254,6 @@ func run() error {
 			}
 		}
 		if !leafs[i].Finish {
-			continue
-		}
-		if leafs[i].Type != dep.Service {
 			continue
 		}
 		fmt.Printf("###   %s[%s]: ", leafs[i].Name, leafs[i].LanguageString())
