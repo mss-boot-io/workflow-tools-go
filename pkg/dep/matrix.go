@@ -75,7 +75,7 @@ func (e *Matrix) Run(workspace, cs, dockerImage, dockerTags string, dockerPush b
 	if dockerImage != "" && e.Type == Service {
 		cs += fmt.Sprintf(" && docker build -t %s:latest .", dockerImage)
 	}
-	if dockerTags != "" && e.Type == Service {
+	if dockerImage != "" && dockerTags != "" && e.Type == Service {
 		var pushLatest bool
 		for _, tag := range strings.Split(dockerTags, ",") {
 			if strings.Index(tag, "v") > -1 && len(tag) < 10 {
