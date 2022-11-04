@@ -69,6 +69,7 @@ func (c *Client) controlApplication(app *appv1.Application, exist bool) error {
 	method := http.MethodPost
 	if exist {
 		method = http.MethodPut
+		url = fmt.Sprintf("%s/api/v1/applications/%s", c.url, app.Name)
 	}
 	fmt.Println(buf.String())
 	request, err := http.NewRequest(method, url, buf)

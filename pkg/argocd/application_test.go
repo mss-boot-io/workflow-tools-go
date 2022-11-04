@@ -49,8 +49,9 @@ func TestClient_CreateApplication(t *testing.T) {
 					},
 					Spec: appv1.ApplicationSpec{
 						Source: appv1.ApplicationSource{
-							RepoURL: "https://github.com/mss-boot-io/mss-boot-gitops",
-							Path:    "mss-boot-monorepo/beta/admin",
+							RepoURL:        "https://github.com/mss-boot-io/mss-boot-gitops",
+							Path:           "beta/mss-boot/admin",
+							TargetRevision: "main",
 						},
 						Destination: appv1.ApplicationDestination{
 							Name:      os.Getenv("ARGOCD_TEST_CLUSTER"),
