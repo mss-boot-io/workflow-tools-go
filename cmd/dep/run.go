@@ -158,6 +158,17 @@ func run() error {
 	for i := range matrix {
 		matrix[i].ProjectPath, _ = services[matrix[i].Name]
 		matrix[i].FindLanguages(workspace)
+		if matrix[i].Type != dep.Service {
+			continue
+		}
+		if strings.Index(strings.ToLower(matrix[i].Name), dep.Airflow.String()) > -1 {
+			matrix[i].Type = dep.Airflow
+			continue
+		}
+		if strings.Index(strings.ToLower(matrix[i].Name), dep.Lambda.String()) > -1 {
+			matrix[i].Type = dep.Lambda
+			continue
+		}
 	}
 	key := dep.GetFilename(repo, mark, storeProvider)
 	//key := fmt.Sprintf("%s/%s/artifact/workflow/service.json", repo, mark)
