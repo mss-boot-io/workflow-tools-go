@@ -175,8 +175,13 @@ func run() error {
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
+		dockerImage := gitopsConfig.GetImage(leafs[i].Name)
+
 		var cmd string
 		if leafs[i].Type != dep.Service && os.Getenv(fmt.Sprintf("%s_cmd", leafs[i].Type.String())) != "" {
+			dockerImage = ""
+			dockerTags = ""
+			dockerPush = false
 			// get service type cmd
 			cmd = os.Getenv(fmt.Sprintf("%s_cmd", leafs[i].Type.String()))
 			var stage string
@@ -204,7 +209,6 @@ func run() error {
 		}
 		cmd = os.Getenv("cmd") + cmd
 
-		dockerImage := gitopsConfig.GetImage(leafs[i].Name)
 		leafs[i].Err = leafs[i].Run(workspace, os.Getenv("cmd"), dockerImage, dockerTags, dockerPush)
 		leafs[i].Finish = true
 		fmt.Print("###   ")
