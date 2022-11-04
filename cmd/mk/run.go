@@ -212,7 +212,7 @@ func run() error {
 		leafs[i].Err = leafs[i].Run(workspace, os.Getenv("cmd"), dockerImage, dockerTags, dockerPush)
 		leafs[i].Finish = true
 		fmt.Print("###   ")
-		if leafs[i].Err == nil && generateCDK8S {
+		if leafs[i].Type == dep.Service && leafs[i].Err == nil && generateCDK8S {
 			fmt.Printf("### generate[%s] %s's cdk8s\n", configStage, leafs[i].Name)
 			cdk8s.Generate(filepath.Join(filepath.Join(leafs[i].ProjectPath...), "deploy-config.yml"),
 				configStage,
