@@ -51,14 +51,14 @@ func (c *Client) existApplication(app *appv1.Application) bool {
 
 func (c *Client) CreateApplication(app *appv1.Application) error {
 	fmt.Printf("create application %s start \n", app.Name)
-	if c.existApplication(app) {
-		fmt.Printf("application %s already exists \n", app.Name)
-		return nil
-	}
-	return c.createApplication(app)
+	//if c.existApplication(app) {
+	//	fmt.Printf("application %s already exists \n", app.Name)
+	//	return nil
+	//}
+	return c.controlApplication(app, c.existApplication(app))
 }
 
-func (c *Client) createApplication(app *appv1.Application) error {
+func (c *Client) controlApplication(app *appv1.Application, exist bool) error {
 	app.Status = appv1.ApplicationStatus{}
 	buf := &bytes.Buffer{}
 	err := json.NewEncoder(buf).Encode(app)
@@ -67,6 +67,9 @@ func (c *Client) createApplication(app *appv1.Application) error {
 	}
 	url := fmt.Sprintf("%s/api/v1/applications", c.url)
 	method := http.MethodPost
+	if exist {
+		method = http.MethodPut
+	}
 	fmt.Println(buf.String())
 	request, err := http.NewRequest(method, url, buf)
 	if err != nil {
