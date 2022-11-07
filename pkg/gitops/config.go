@@ -60,7 +60,7 @@ func (s StageDeploy) ParseTemplate(tmp string) (string, error) {
 
 // GetImage : get image
 func (c *Config) GetImage(service string) string {
-	if c.Deploy.Image != "" {
+	if c.Deploy.Image == "" {
 		return ""
 	}
 	if len(strings.Split(c.Deploy.Image, "/")) > 1 {

@@ -170,8 +170,11 @@ func run() error {
 		}
 
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
+		if len(leafs[i].ProjectPath) == 0 {
+			leafs[i].ProjectPath = []string{leafs[i].Name}
+		}
 		var gitopsConfig *gitops.Config
-		gitopsConfig, leafs[i].Err = gitops.LoadFile(filepath.Join(filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
+		gitopsConfig, leafs[i].Err = gitops.LoadFile(filepath.Join(workspace, filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
@@ -179,9 +182,6 @@ func run() error {
 
 		var cmd string
 		if leafs[i].Type != dep.Service && os.Getenv(fmt.Sprintf("%s_cmd", leafs[i].Type.String())) != "" {
-			dockerImage = ""
-			dockerTags = ""
-			dockerPush = false
 			// get service type cmd
 			cmd = os.Getenv(fmt.Sprintf("%s_cmd", leafs[i].Type.String()))
 			var stage string

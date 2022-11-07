@@ -42,6 +42,7 @@ var (
 	gitopsRepo,
 	gitopsBranch,
 	gitopsConfigFile,
+	workspace,
 	storeProvider string
 	errorBlock bool
 	StartCmd   = &cobra.Command{
@@ -59,6 +60,10 @@ var (
 )
 
 func init() {
+	StartCmd.PersistentFlags().StringVar(&workspace,
+		"workspace",
+		os.Getenv("workspace"),
+		"workspace")
 	StartCmd.PersistentFlags().StringVar(&gitopsConfigFile,
 		"gitops-config-file",
 		"deploy-config.yml",
@@ -155,9 +160,12 @@ func run() error {
 			continue
 		}
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
+		if len(leafs[i].ProjectPath) == 0 {
+			leafs[i].ProjectPath = []string{leafs[i].Name}
+		}
 		var gitopsConfig *gitops.Config
 		fmt.Print("###   \n")
-		gitopsConfig, leafs[i].Err = gitops.LoadFile(filepath.Join(filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
+		gitopsConfig, leafs[i].Err = gitops.LoadFile(filepath.Join(workspace, filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
 		if leafs[i].Err != nil {
 			fmt.Printf("### load %s's gitops config file error: %s\n", leafs[i].Name, leafs[i].Err)
 			continue
@@ -173,7 +181,7 @@ func run() error {
 				!(configStage == "prod" || configStage == "production") {
 				continue
 			}
-			if (strings.Index(stage, "prod") == -1 || strings.Index(stage, "production") == -1) &&
+			if (strings.Index(stage, "prod") == -1 && strings.Index(stage, "production") == -1) &&
 				(configStage == "prod" || configStage == "production") {
 				continue
 			}
