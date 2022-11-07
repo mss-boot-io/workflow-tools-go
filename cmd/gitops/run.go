@@ -169,21 +169,13 @@ func run() error {
 		}
 		argocdClient := argocd.New(argocdURL, argocdToken, nil)
 		for stage := range gitopsConfig.Deploy.Stage {
-			switch stage {
-			case "prod", "production":
-				switch configStage {
-				case "prod", "production":
-					fmt.Printf("###   \n")
-				default:
-					continue
-				}
-			default:
-				switch configStage {
-				case "prod", "production":
-					continue
-				default:
-					fmt.Printf("###   \n")
-				}
+			if (strings.Index(stage, "prod") > -1 || strings.Index(stage, "production") > -1) &&
+				!(configStage == "prod" || configStage == "production") {
+				continue
+			}
+			if (strings.Index(stage, "prod") == -1 || strings.Index(stage, "production") == -1) &&
+				(configStage == "prod" || configStage == "production") {
+				continue
 			}
 			namespace := gitopsConfig.Deploy.Stage[stage].GetKey("namespace")
 			if namespace == "" {
