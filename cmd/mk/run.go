@@ -178,7 +178,10 @@ func run() error {
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
-		dockerImage := gitopsConfig.GetImage(leafs[i].Name)
+		var dockerImage string
+		if gitopsConfig != nil {
+			dockerImage = gitopsConfig.GetImage(leafs[i].Name)
+		}
 
 		var cmd string
 		if leafs[i].Type != dep.Service && os.Getenv(fmt.Sprintf("%s_cmd", leafs[i].Type.String())) != "" {
