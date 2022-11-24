@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/rds v1.18.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.3
 	github.com/google/go-github/v44 v44.1.1-0.20220516192235-2d872b40760d
-	github.com/mss-boot-io/cd-template v0.1.0
+	github.com/mss-boot-io/cd-template v0.1.1
 	github.com/sanity-io/litter v1.5.4
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.5.0
@@ -19,6 +19,7 @@ require (
 
 require (
 	github.com/argoproj/argo-cd/v2 v2.5.0
+	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apimachinery v0.24.2
 )
 
@@ -153,7 +154,6 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.24.2 // indirect
 	k8s.io/apiextensions-apiserver v0.24.2 // indirect
