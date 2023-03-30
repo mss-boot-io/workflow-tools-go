@@ -63,7 +63,10 @@ func (c *Config) GetImage(service string) string {
 	if c.Deploy.Image == "" {
 		return ""
 	}
-	if len(strings.Split(c.Deploy.Image, "/")) > 1 {
+	if (!strings.Contains(c.Deploy.Image, "public.ecr.aws") &&
+		len(strings.Split(c.Deploy.Image, "/")) > 1) ||
+		(strings.Contains(c.Deploy.Image, "public.ecr.aws") &&
+			len(strings.Split(c.Deploy.Image, "/")) > 2) {
 		return c.Deploy.Image
 	}
 	return fmt.Sprintf("%s/%s", c.Deploy.Image, service)
