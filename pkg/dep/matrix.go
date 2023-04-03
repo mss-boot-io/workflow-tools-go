@@ -103,7 +103,7 @@ func (e *Matrix) Run(workspace, cs, dockerImage, dockerTags string, dockerPush b
 					// gcp private image
 					arr := strings.Split(dockerImage, "/")
 					//gcp artifact auth
-					cs += fmt.Sprintf(" && gcloud auth configure-docker %s", arr[0])
+					cs += fmt.Sprintf(" && gcloud auth configure-docker %s  --quiet", arr[0])
 				}
 				cs += fmt.Sprintf(" && docker push %s:%s", dockerImage, tag)
 			}
