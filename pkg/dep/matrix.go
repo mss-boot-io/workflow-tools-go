@@ -99,6 +99,12 @@ func (e *Matrix) Run(workspace, cs, dockerImage, dockerTags string, dockerPush b
 						` && aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin %s`,
 						strings.Join([]string{arr[0], arr[1]}, "/"))
 				}
+				if strings.Index(dockerImage, ".pkg.dev") > 0 {
+					// gcp private image
+					arr := strings.Split(dockerImage, "/")
+					//gcp artifact auth
+					cs += fmt.Sprintf(" && gcloud auth configure-docker %s", arr[0])
+				}
 				cs += fmt.Sprintf(" && docker push %s:%s", dockerImage, tag)
 			}
 		}
