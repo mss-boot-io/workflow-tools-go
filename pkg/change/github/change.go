@@ -55,7 +55,7 @@ func (e *Github) SetRepoURL(repo string) error {
 
 // ChangeFiles get change files
 func (e *Github) ChangeFiles(mark string) (*change.Files, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: e.token})
 	tc := oauth2.NewClient(ctx, ts)

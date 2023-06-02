@@ -11,6 +11,7 @@ import (
 	"errors"
 	"github.com/mss-boot-io/workflow-tools/cmd/change"
 	"github.com/mss-boot-io/workflow-tools/cmd/gitops"
+	"github.com/mss-boot-io/workflow-tools/cmd/tag"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -42,6 +43,7 @@ func init() {
 	rootCmd.AddCommand(aws.StartCmd)
 	rootCmd.AddCommand(change.StartCmd)
 	rootCmd.AddCommand(gitops.StartCmd)
+	rootCmd.AddCommand(tag.StartCmd)
 }
 
 //Execute : apply commands
