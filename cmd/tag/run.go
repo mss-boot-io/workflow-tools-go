@@ -1,15 +1,15 @@
 /*
- * @Author: lwnmengjing<lwnmengjing@qq.com>
- * @Date: 2022/4/7 15:54
- * @Last Modified by: lwnmengjing<lwnmengjing@qq.com>
- * @Last Modified time: 2022/4/7 15:54
+ * @Author: snakelu<lyhccq@163.com>
+ * @Date: 2023/5/31 09:18
+ * @Last Modified by: snakelu<lyhccq@163.com>
+ * @Last Modified time: 2023/5/31 09:18
  */
 
-package dep
+package tag
 
 import (
+	"errors"
 	"github.com/mss-boot-io/workflow-tools/pkg"
-	"github.com/mss-boot-io/workflow-tools/pkg/change"
 	"log"
 	"os"
 	"path/filepath"
@@ -22,21 +22,19 @@ import (
 )
 
 var (
+	ref,
 	provider,
-	ignorePaths,
 	workspace,
 	filename,
 	projectNameMatch,
 	repo,
-	mark,
-	dependenceMatch string
-	storeProvider  string
+	storeProvider string
 	bucket, region string
 
 	StartCmd = &cobra.Command{
-		Use:          "dep",
+		Use:          "tag",
 		Short:        "exec gradle dependency output leaf service and library",
-		Example:      "go-workflow-tools dep",
+		Example:      "go-workflow-tools tag",
 		SilenceUsage: true,
 		PreRun: func(_ *cobra.Command, _ []string) {
 			log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
@@ -49,13 +47,12 @@ var (
 )
 
 func init() {
+	StartCmd.PersistentFlags().StringVar(&ref,
+		"ref", os.Getenv("ref"),
+		"code repository tag ref")
 	StartCmd.PersistentFlags().StringVar(&provider,
 		"provider", os.Getenv("provider"),
 		"code repository provider")
-	StartCmd.PersistentFlags().StringVar(&ignorePaths,
-		"ignore-paths",
-		os.Getenv("ignore_paths"),
-		"ignore paths")
 	StartCmd.PersistentFlags().StringVar(&workspace,
 		"workspace",
 		os.Getenv("workspace"),
@@ -68,10 +65,6 @@ func init() {
 		"project-name-match",
 		os.Getenv("project_name_match"),
 		"project name match")
-	StartCmd.PersistentFlags().StringVar(&dependenceMatch,
-		"dependence-match",
-		os.Getenv("dependence_match"),
-		"dependence match")
 	StartCmd.PersistentFlags().StringVar(&storeProvider,
 		"store-provider",
 		"s3",
@@ -87,9 +80,6 @@ func init() {
 	StartCmd.PersistentFlags().StringVar(&repo,
 		"repo", os.Getenv("repo"),
 		"repository path(github) or url")
-	StartCmd.PersistentFlags().StringVar(&mark,
-		"mark", os.Getenv("mark"),
-		"commit sha or pull request number")
 }
 
 func preRun() {
@@ -99,66 +89,39 @@ func preRun() {
 	if projectNameMatch == "" {
 		projectNameMatch = "rootProject.name =\\s'([^']+)'"
 	}
-	if dependenceMatch == "" {
-		dependenceMatch = "includeBuild\\s'([^']+)'"
-	}
 }
 
 func run() error {
+	// ref format example: refs/tags/terminal/v0.0.1
+	if !strings.HasPrefix(ref, "refs/tags/") {
+		log.Printf("ref is invalid %s\n", ref)
+		return errors.New("ref is invalid")
+	}
+
+	serviceName := strings.Split(ref, "/")[2]
 	services, err := dep.GetAllServices(workspace, filename, projectNameMatch)
 	if err != nil {
 		log.Println(err)
 		return err
 	}
-	d, err := dep.NewDig(workspace, filename, services, projectNameMatch, dependenceMatch)
-	if err != nil {
-		log.Println(err)
-		return err
+
+	if services[serviceName] == nil {
+		log.Printf("service %s not exist\n", serviceName)
+		return errors.New("service not exist")
 	}
-	dirs := make([]string, 0)
-	//获取change files list
-	var files change.Files
-	switch storeProvider {
-	case "s3":
-		err = aws.GetObjectFromS3(region, bucket, change.GetFilename(repo, mark, storeProvider), &files)
-	default:
-		err = pkg.ReadJsonFile(change.GetFilename("", "", storeProvider), &files)
+
+	matrix := make(map[string]*dep.Matrix)
+	matrix[serviceName] = &dep.Matrix{
+		Name:        serviceName,
+		Type:        dep.Service,
+		ProjectPath: services[serviceName],
 	}
-	if err != nil {
-		log.Printf("cmd GetObjectFromS3 error: %s", err.Error())
-		return err
-	}
-	ignores := strings.Split(ignorePaths, ",")
-	if ignorePaths == "" {
-		ignores = nil
-	}
-	changeFiles := make([]string, 0)
-	changeFiles = append(changeFiles, files.Modified...)
-	changeFiles = append(changeFiles, files.Added...)
-	changeFiles = append(changeFiles, files.Renamed...)
-	for _, c := range changeFiles {
-		for _, service := range services {
-			if strings.Index(c, strings.Join(service, "/")+"/") > -1 {
-				c = strings.Join(service, "/")
-				break
-			}
-		}
-		var exist bool
-		for i := range ignores {
-			if strings.Index(c, ignores[i]) > -1 {
-				exist = true
-				break
-			}
-		}
-		if !exist {
-			dirs = append(dirs, c)
-		}
-	}
-	matrix := d.GetChanged(dirs)
 
 	for i := range matrix {
-		matrix[i].ProjectPath, _ = services[matrix[i].Name]
 		matrix[i].FindLanguages(workspace)
+		if matrix[i].Type != dep.Service {
+			continue
+		}
 		if strings.Index(strings.ToLower(matrix[i].Name), dep.Airflow.String()) > -1 {
 			matrix[i].Type = dep.Airflow
 			continue
@@ -168,7 +131,7 @@ func run() error {
 			continue
 		}
 	}
-	key := dep.GetFilename(repo, mark, storeProvider)
+	key := dep.GetFilename(repo, ref, storeProvider)
 	//key := fmt.Sprintf("%s/%s/artifact/workflow/service.json", repo, mark)
 	switch storeProvider {
 	case "s3":
