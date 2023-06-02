@@ -138,7 +138,7 @@ func run() error {
 	changeFiles = append(changeFiles, files.Renamed...)
 	for _, c := range changeFiles {
 		for _, service := range services {
-			if strings.Index(c, strings.Join(service, "/")+string(os.PathSeparator)) > -1 {
+			if strings.Index(c, strings.Join(service, "/")+"/") > -1 {
 				c = strings.Join(service, "/")
 				break
 			}
@@ -147,6 +147,7 @@ func run() error {
 		for i := range ignores {
 			if strings.Index(c, ignores[i]) > -1 {
 				exist = true
+				break
 			}
 		}
 		if !exist {
