@@ -125,7 +125,7 @@ func run() error {
 	}
 
 	matrices := make([]*dep.Matrix, 0, 1)
-	matrices[0] = matrix
+	matrices = append(matrices, matrix)
 
 	key := dep.GetFilename(repo, ref, storeProvider)
 	//key := fmt.Sprintf("%s/%s/artifact/workflow/service.json", repo, mark)
