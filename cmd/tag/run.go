@@ -110,32 +110,28 @@ func run() error {
 		return errors.New("service not exist")
 	}
 
-	matrix := make(map[string]*dep.Matrix)
-	matrix[serviceName] = &dep.Matrix{
+	matrix := &dep.Matrix{
 		Name:        serviceName,
 		Type:        dep.Service,
 		ProjectPath: services[serviceName],
 	}
 
-	for i := range matrix {
-		matrix[i].FindLanguages(workspace)
-		if matrix[i].Type != dep.Service {
-			continue
-		}
-		if strings.Index(strings.ToLower(matrix[i].Name), dep.Airflow.String()) > -1 {
-			matrix[i].Type = dep.Airflow
-			continue
-		}
-		if strings.Index(strings.ToLower(matrix[i].Name), dep.Lambda.String()) > -1 {
-			matrix[i].Type = dep.Lambda
-			continue
-		}
+	matrix.FindLanguages(workspace)
+	if strings.Index(strings.ToLower(matrix.Name), dep.Airflow.String()) > -1 {
+		matrix.Type = dep.Airflow
 	}
+	if strings.Index(strings.ToLower(matrix.Name), dep.Lambda.String()) > -1 {
+		matrix.Type = dep.Lambda
+	}
+
+	matrices := make([]*dep.Matrix, 0, 1)
+	matrices[0] = matrix
+
 	key := dep.GetFilename(repo, ref, storeProvider)
 	//key := fmt.Sprintf("%s/%s/artifact/workflow/service.json", repo, mark)
 	switch storeProvider {
 	case "s3":
-		return aws.PutObjectToS3(region, bucket, key, &matrix, "application/json")
+		return aws.PutObjectToS3(region, bucket, key, &matrices, "application/json")
 	default:
 		//默认使用文件
 		err = pkg.CreatePath(filepath.Dir(key))
