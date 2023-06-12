@@ -135,7 +135,7 @@ func run() error {
 
 	var err error
 	key := dep.GetFilename(repo, mark, storeProvider)
-	if leaf != "" {
+	if leaf != "" && leaf != "[]" {
 		err = json.Unmarshal([]byte(leaf), &leafs)
 		if err != nil {
 			log.Println(err)
