@@ -137,7 +137,7 @@ func run() error {
 	leafs := make([]dep.Matrix, 0)
 	var err error
 	key := dep.GetFilename(repo, mark, storeProvider)
-	if leaf != "" {
+	if leaf != "" && leaf != "[]" {
 		err = json.Unmarshal([]byte(leaf), &leafs)
 		if err != nil {
 			fmt.Printf("unmarshal leaf error: %s\n", err.Error())
