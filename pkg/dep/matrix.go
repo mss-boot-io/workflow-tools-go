@@ -10,6 +10,7 @@ package dep
 import (
 	"context"
 	"fmt"
+	"github.com/mss-boot-io/workflow-tools/pkg/aws"
 	"github.com/spf13/cast"
 	"io/fs"
 	"log"
@@ -91,6 +92,9 @@ func (e *Matrix) Run(workspace, cs, dockerImage, dockerTags string, dockerPush b
 						" && aws ecr get-login-password --region %s |"+
 							" docker login --username AWS --password-stdin %s.dkr.ecr.%s.amazonaws.com",
 						region, account, region)
+					// aws ecr create private repo use sdk
+					aws.CreatePrivateRepoIfNotExist(region, dockerImage)
+
 				}
 				if strings.Index(dockerImage, "public.ecr.aws") > -1 {
 					// aws public ecr

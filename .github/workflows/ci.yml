@@ -33,6 +33,7 @@ jobs:
   ci:
     needs: test
     runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' }}
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     strategy:
