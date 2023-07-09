@@ -8,15 +8,17 @@
 package change
 
 import (
-	"github.com/mss-boot-io/workflow-tools/pkg"
-	"github.com/mss-boot-io/workflow-tools/pkg/aws"
-	"github.com/mss-boot-io/workflow-tools/pkg/change"
-	"github.com/mss-boot-io/workflow-tools/pkg/change/github"
-	"github.com/spf13/cobra"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/cobra"
+
+	"github.com/mss-boot-io/workflow-tools/pkg"
+	"github.com/mss-boot-io/workflow-tools/pkg/aws"
+	"github.com/mss-boot-io/workflow-tools/pkg/change"
+	"github.com/mss-boot-io/workflow-tools/pkg/change/github"
 )
 
 var (

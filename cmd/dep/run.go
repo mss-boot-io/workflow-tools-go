@@ -8,8 +8,6 @@
 package dep
 
 import (
-	"github.com/mss-boot-io/workflow-tools/pkg"
-	"github.com/mss-boot-io/workflow-tools/pkg/change"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,7 +15,9 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/mss-boot-io/workflow-tools/pkg"
 	"github.com/mss-boot-io/workflow-tools/pkg/aws"
+	"github.com/mss-boot-io/workflow-tools/pkg/change"
 	"github.com/mss-boot-io/workflow-tools/pkg/dep"
 )
 

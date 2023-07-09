@@ -10,18 +10,19 @@ package mk
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/mss-boot-io/workflow-tools/pkg/cdk8s"
-	"github.com/mss-boot-io/workflow-tools/pkg/gitops"
-	"github.com/spf13/cast"
-	"github.com/spf13/cobra"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cast"
+	"github.com/spf13/cobra"
+
 	"github.com/mss-boot-io/workflow-tools/pkg"
 	"github.com/mss-boot-io/workflow-tools/pkg/aws"
+	"github.com/mss-boot-io/workflow-tools/pkg/cdk8s"
 	"github.com/mss-boot-io/workflow-tools/pkg/dep"
+	"github.com/mss-boot-io/workflow-tools/pkg/gitops"
 )
 
 var (
