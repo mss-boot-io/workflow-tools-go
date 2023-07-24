@@ -39,11 +39,12 @@ var (
 	configStage,
 	gitopsConfigFile,
 	serviceType string
-	errorBlock    bool
-	dockerPush    bool
-	generateCDK8S bool
-	storeProvider string
-	StartCmd      = &cobra.Command{
+	errorBlock       bool
+	dockerPush       bool
+	generateCDK8S    bool
+	storeProvider    string
+	makefileTmplPath string
+	StartCmd         = &cobra.Command{
 		Use:          "mk",
 		Short:        "exec  multiple work",
 		Example:      "go-workflow-tools mk",
@@ -120,6 +121,10 @@ func init() {
 	StartCmd.PersistentFlags().StringVar(&configStage,
 		"config-stage", os.Getenv("config_stage"),
 		"config stage")
+	StartCmd.PersistentFlags().StringVar(&makefileTmplPath,
+		"makefileTmplPath",
+		os.Getenv("makefileTmplPath"),
+		"makefile template path")
 }
 
 func run() error {
@@ -213,6 +218,20 @@ func run() error {
 		}
 		cmd = os.Getenv("cmd") + cmd
 		fmt.Printf("### cmd: %s\n", cmd)
+
+		// copy makefile template to service path if not exist
+		makefilePath := filepath.Join(workspace, filepath.Join(leafs[i].ProjectPath...), "Makefile")
+		makefileExist := pkg.PathExist(makefilePath)
+		if !makefileExist {
+			if makefileTmplPath == "" {
+				makefileTmplPath = filepath.Join(workspace, ".github/Makefile_Temp")
+			}
+			err := pkg.CopyFile(makefileTmplPath, makefilePath)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+		}
 
 		leafs[i].Err = leafs[i].Run(workspace, os.Getenv("cmd"), dockerImage, dockerTags, dockerPush)
 		leafs[i].Finish = true

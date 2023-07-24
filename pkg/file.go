@@ -10,6 +10,7 @@ package pkg
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"log"
 	"os"
 )
@@ -68,4 +69,29 @@ func ReadJsonFile(path string, data interface{}) (err error) {
 	}
 	defer f.Close()
 	return json.NewDecoder(f).Decode(data)
+}
+
+// CopyFile 复制文件
+func CopyFile(sourceFile, destinationFile string) error {
+	// open source file
+	src, err := os.Open(sourceFile)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	//create destination file
+	dst, err := os.Create(destinationFile)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	// copy file content
+	_, err = io.Copy(dst, src)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
