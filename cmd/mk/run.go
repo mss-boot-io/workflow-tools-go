@@ -189,6 +189,11 @@ func run() error {
 			dockerImage = gitopsConfig.GetImage(leafs[i].Name)
 		}
 
+		var imagePullSecrets []string
+		if len(gitopsConfig.Deploy.ImagePullSecrets) != 0 {
+			imagePullSecrets = append(gitopsConfig.Deploy.ImagePullSecrets)
+		}
+
 		var cmd string
 		if leafs[i].Type != dep.Service && os.Getenv(fmt.Sprintf("%s_cmd", leafs[i].Type.String())) != "" {
 			// get service type cmd
@@ -241,6 +246,7 @@ func run() error {
 			cdk8s.Generate(filepath.Join(filepath.Join(leafs[i].ProjectPath...), "deploy-config.yml"),
 				configStage,
 				fmt.Sprintf("%s:%s", dockerImage, dockerTags),
+				imagePullSecrets,
 				leafs[i].ProjectPath)
 
 		}
