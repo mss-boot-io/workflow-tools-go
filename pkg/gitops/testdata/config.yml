@@ -14,6 +14,8 @@ config:
     path: /app/cfg
 deploy:
   image: mssbootio/admin
+  imagePullSecrets:
+    - demo
   stage:
     alpha:
       cluster: matrix-devops
