@@ -189,7 +189,7 @@ func run() error {
 			dockerImage = gitopsConfig.GetImage(leafs[i].Name)
 		}
 
-		var imagePullSecrets []string
+		var imagePullSecrets = make([]string, 0)
 		if len(gitopsConfig.Deploy.ImagePullSecrets) != 0 {
 			imagePullSecrets = append(gitopsConfig.Deploy.ImagePullSecrets)
 		}
