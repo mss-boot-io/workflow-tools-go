@@ -13,7 +13,7 @@ import (
 )
 
 // Generate the k8s yaml file
-func Generate(configPath, stageStr, image string, imagePullSecrets, servicePath []string) {
+func Generate(configPath, stageStr, image string, servicePath []string) {
 	config.NewConfig(&configPath)
 	switch stageStr {
 	case "dev", "test", "local", "alpha", "beta", "staging":
@@ -22,6 +22,5 @@ func Generate(configPath, stageStr, image string, imagePullSecrets, servicePath 
 		config.Cfg.Replicas = config.Cfg.TestReplicas
 	}
 	config.Cfg.Image.Path = image
-	config.Cfg.Image.Secrets = imagePullSecrets
 	stage.Synth(stageStr, servicePath...)
 }

@@ -24,9 +24,8 @@ type Config struct {
 }
 
 type Deploy struct {
-	Image            string                 `yaml:"image" json:"image"`
-	ImagePullSecrets []string               `yaml:"imagePullSecrets" json:"imagePullSecrets"`
-	Stage            map[string]StageDeploy `yaml:"stage" json:"stage"`
+	Image string                 `yaml:"image" json:"image"`
+	Stage map[string]StageDeploy `yaml:"stage" json:"stage"`
 }
 
 type StageDeploy map[string]any
