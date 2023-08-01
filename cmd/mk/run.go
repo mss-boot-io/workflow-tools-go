@@ -167,18 +167,20 @@ func run() error {
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
-		if !config.Build.SkipCache && downloadCache != "" {
-			fmt.Printf("######################## %s ########################\n", "Download Cache Starting")
-			fmt.Println("#    ", downloadCache)
-			err = pkg.Cmd(downloadCache)
-			if err != nil {
-				log.Println(err)
-				return err
-			}
-			fmt.Printf("######################## %s ########################\n", "Download Cache Finished")
+		if !config.Build.SkipCache {
 			saveCacheNeeded = true
 			break
 		}
+	}
+	if saveCacheNeeded && downloadCache != "" {
+		fmt.Printf("######################## %s ########################\n", "Download Cache Starting")
+		fmt.Println("#    ", downloadCache)
+		err = pkg.Cmd(downloadCache)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		fmt.Printf("######################## %s ########################\n", "Download Cache Finished")
 	}
 
 	for i := range leafs {
