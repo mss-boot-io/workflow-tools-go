@@ -159,8 +159,20 @@ func run() error {
 			return err
 		}
 	}
-
-	if len(leafs) > 0 && downloadCache != "" {
+	// Download cache if needed for any project
+	var saveCacheNeeded bool
+	for i := range leafs {
+		var config *gitops.Config
+		config, leafs[i].Err = gitops.LoadFile(filepath.Join(workspace, filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
+		if leafs[i].Err != nil && errorBlock {
+			break
+		}
+		if !config.Build.SkipCache {
+			saveCacheNeeded = true
+			break
+		}
+	}
+	if saveCacheNeeded && downloadCache != "" {
 		fmt.Printf("######################## %s ########################\n", "Download Cache Starting")
 		fmt.Println("#    ", downloadCache)
 		err = pkg.Cmd(downloadCache)
@@ -170,6 +182,7 @@ func run() error {
 		}
 		fmt.Printf("######################## %s ########################\n", "Download Cache Finished")
 	}
+
 	for i := range leafs {
 		if strings.Index(serviceType, leafs[i].Type.String()) == -1 {
 			continue
@@ -298,7 +311,9 @@ func run() error {
 		log.Println(err)
 		return err
 	}
-	if len(leafs) > 0 && uploadCache != "" && updateCache {
+
+	// Upload cache if needed for any project
+	if saveCacheNeeded && uploadCache != "" && updateCache {
 		fmt.Printf("######################## %s ########################\n", "Upload Cache Starting")
 		fmt.Println("#    ", uploadCache)
 		err = pkg.Cmd(uploadCache)
