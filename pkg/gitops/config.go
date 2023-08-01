@@ -21,11 +21,16 @@ import (
 type Config struct {
 	Project string `yaml:"project" json:"project"`
 	Deploy  Deploy `yaml:"deploy" json:"deploy"`
+	Build   Build  `yaml:"build" json:"build"`
 }
 
 type Deploy struct {
 	Image string                 `yaml:"image" json:"image"`
 	Stage map[string]StageDeploy `yaml:"stage" json:"stage"`
+}
+
+type Build struct {
+	SkipCache bool `yaml:"skipCache" json:"skipCache"`
 }
 
 type StageDeploy map[string]any
