@@ -167,7 +167,7 @@ func run() error {
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
-		if !config.Build.SkipCache {
+		if config != nil && !config.Build.SkipCache {
 			saveCacheNeeded = true
 			break
 		}
