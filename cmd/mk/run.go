@@ -162,6 +162,9 @@ func run() error {
 	// Download cache if needed for any project
 	var saveCacheNeeded bool
 	for i := range leafs {
+		if strings.Index(serviceType, leafs[i].Type.String()) == -1 {
+			continue
+		}
 		var config *gitops.Config
 		config, leafs[i].Err = gitops.LoadFile(filepath.Join(workspace, filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
 		if leafs[i].Err != nil && errorBlock {
