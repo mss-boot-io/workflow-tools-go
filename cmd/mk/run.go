@@ -162,6 +162,9 @@ func run() error {
 	// Download cache if needed for any project
 	var saveCacheNeeded bool
 	for i := range leafs {
+		if leafs[i].ProjectPath == nil || len(leafs[i].ProjectPath) == 0 {
+			leafs[i].ProjectPath = []string{leafs[i].Name}
+		}
 		if strings.Index(serviceType, leafs[i].Type.String()) == -1 {
 			continue
 		}
@@ -192,9 +195,6 @@ func run() error {
 		}
 
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
-		if leafs[i].ProjectPath == nil || len(leafs[i].ProjectPath) == 0 {
-			leafs[i].ProjectPath = []string{leafs[i].Name}
-		}
 		var gitopsConfig *gitops.Config
 		gitopsConfig, leafs[i].Err = gitops.LoadFile(filepath.Join(workspace, filepath.Join(leafs[i].ProjectPath...), gitopsConfigFile))
 		if leafs[i].Err != nil && errorBlock {
