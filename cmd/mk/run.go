@@ -192,7 +192,7 @@ func run() error {
 		}
 
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)
-		if len(leafs[i].ProjectPath) == 0 {
+		if leafs[i].ProjectPath == nil || len(leafs[i].ProjectPath) == 0 {
 			leafs[i].ProjectPath = []string{leafs[i].Name}
 		}
 		var gitopsConfig *gitops.Config
