@@ -181,10 +181,9 @@ func run() error {
 	if saveCacheNeeded && downloadCache != "" {
 		fmt.Printf("######################## %s ########################\n", "Download Cache Starting")
 		fmt.Println("#    ", downloadCache)
-		err = pkg.Cmd(downloadCache)
-		if err != nil {
-			log.Println(err)
-			return err
+		downloadErr := pkg.Cmd(downloadCache)
+		if downloadErr != nil {
+			log.Println(downloadErr)
 		}
 		fmt.Printf("######################## %s ########################\n", "Download Cache Finished")
 	}
@@ -319,10 +318,9 @@ func run() error {
 	if saveCacheNeeded && uploadCache != "" && updateCache {
 		fmt.Printf("######################## %s ########################\n", "Upload Cache Starting")
 		fmt.Println("#    ", uploadCache)
-		err = pkg.Cmd(uploadCache)
-		if err != nil {
-			log.Println(err)
-			return err
+		uploadErr := pkg.Cmd(uploadCache)
+		if uploadErr != nil {
+			log.Println(uploadErr)
 		}
 		fmt.Printf("######################## %s ########################\n", "Upload Cache Finished")
 	}
