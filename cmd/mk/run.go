@@ -184,7 +184,6 @@ func run() error {
 		err = pkg.Cmd(downloadCache)
 		if err != nil {
 			log.Println(err)
-			return err
 		}
 		fmt.Printf("######################## %s ########################\n", "Download Cache Finished")
 	}
@@ -322,9 +321,8 @@ func run() error {
 		err = pkg.Cmd(uploadCache)
 		if err != nil {
 			log.Println(err)
-			return err
 		}
 		fmt.Printf("######################## %s ########################\n", "Upload Cache Finished")
 	}
-	return err
+	return nil
 }
