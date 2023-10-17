@@ -14,6 +14,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 
 	appv1 "github.com/argoproj/argo-cd/v2/pkg/apis/application/v1alpha1"
@@ -44,14 +46,17 @@ var (
 	gitopsConfigFile,
 	workspace,
 	storeProvider string
-	errorBlock bool
-	StartCmd   = &cobra.Command{
+	languageEnv  string
+	singleGitops string
+	errorBlock   bool
+	StartCmd     = &cobra.Command{
 		Use:          "gitops",
 		Short:        "exec  multiple work to gitops",
 		Example:      "go-workflow-tools gitops",
 		SilenceUsage: true,
 		PreRun: func(_ *cobra.Command, _ []string) {
 			log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+			preRun()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run()
@@ -121,6 +126,20 @@ func init() {
 		"error-block",
 		false,
 		"error-block")
+	StartCmd.PersistentFlags().StringVar(&languageEnv,
+		"languageEnv",
+		os.Getenv("languageEnv"),
+		"the language and version required for the build")
+	StartCmd.PersistentFlags().StringVar(&singleGitops,
+		"singleGitops",
+		os.Getenv("singleGitops"),
+		"only supported build languages and corresponding versions")
+}
+
+func preRun() {
+	if singleGitops == "" {
+		singleGitops = "false"
+	}
 }
 
 func run() error {
@@ -155,8 +174,26 @@ func run() error {
 			return err
 		}
 	}
+	// When only a single gitops is supported, parse out the supported languages and versions.
+	var languageType, languageVersion string
+	isSingleGitops, err := strconv.ParseBool(singleGitops)
+	if err != nil {
+		return err
+	}
+	if isSingleGitops {
+		pattern := "/"
+		match, err := regexp.MatchString(pattern, languageEnv)
+		if err != nil || !match {
+			return err
+		}
+		languageType = strings.Split(languageEnv, "/")[0]
+		languageVersion = strings.Split(languageEnv, "/")[1]
+	}
 	for i := range leafs {
 		if leafs[i].Type.String() != serviceType {
+			continue
+		}
+		if isSingleGitops && (leafs[i].LanguageEnvType != languageType || leafs[i].LanguageEnvVersion != languageVersion) {
 			continue
 		}
 		fmt.Printf("######################## %s ########################\n", leafs[i].Name)

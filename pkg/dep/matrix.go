@@ -11,6 +11,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/mss-boot-io/workflow-tools/pkg/aws"
+	"github.com/mss-boot-io/workflow-tools/pkg/gitops"
 	"github.com/spf13/cast"
 	"io/fs"
 	"log"
@@ -42,15 +43,17 @@ const (
 )
 
 type Matrix struct {
-	Name        string      `json:"name"`
-	Type        ServiceType `json:"type"`
-	Language    []Language  `json:"language"`
-	ReportUrl   string      `json:"report"`
-	Err         error       `json:"-"`
-	ProjectPath []string    `json:"projectPath"`
-	Finish      bool        `json:"-"`
-	Reports     []Report    `json:"_"`
-	Coverage    float64     `json:"coverage"`
+	Name               string      `json:"name"`
+	Type               ServiceType `json:"type"`
+	Language           []Language  `json:"language"`
+	LanguageEnvType    string      `json:"languageEnvType"`
+	LanguageEnvVersion string      `json:"languageEnvVersion"`
+	ReportUrl          string      `json:"report"`
+	Err                error       `json:"-"`
+	ProjectPath        []string    `json:"projectPath"`
+	Finish             bool        `json:"-"`
+	Reports            []Report    `json:"_"`
+	Coverage           float64     `json:"coverage"`
 }
 
 func (e *Matrix) LanguageString() string {
@@ -167,6 +170,17 @@ func (e *Matrix) FindLanguages(workspace string) {
 	if node {
 		e.Language = append(e.Language, Node)
 	}
+}
+
+func (e *Matrix) FindLanguageEnv(workspace, gitopsConfigFile string) {
+	config, err := gitops.LoadFile(filepath.Join(workspace, filepath.Join(e.ProjectPath...), gitopsConfigFile))
+	if err != nil || config == nil {
+		e.LanguageEnvType = ""
+		e.LanguageEnvVersion = ""
+		return
+	}
+	e.LanguageEnvType = config.LanguageEnvType
+	e.LanguageEnvVersion = config.LanguageEnvVersion
 }
 
 // OutputReportTableToPR output report table to PR
