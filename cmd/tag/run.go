@@ -144,7 +144,7 @@ func run() error {
 	matrices := []*dep.Matrix{matrix}
 
 	// Store the service message file to the local area
-	err = pkg.CreatePath(serviceJsonFilePath)
+	err = pkg.CreatePath(filepath.Dir(serviceJsonFilePath))
 	if err != nil {
 		return err
 	}

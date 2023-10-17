@@ -228,6 +228,13 @@ func run() error {
 	}
 
 	for i := range leafs {
+		fmt.Println("============================")
+		fmt.Println(isSingleBuildoEnv)
+		fmt.Println(leafs[i].LanguageEnvType)
+		fmt.Println(languageType)
+		fmt.Println(leafs[i].LanguageEnvVersion)
+		fmt.Println(languageVersion)
+		fmt.Println("============================")
 		if strings.Index(serviceType, leafs[i].Type.String()) == -1 {
 			continue
 		}
