@@ -22,6 +22,7 @@ type Config struct {
 	Project            string `yaml:"project" json:"project"`
 	LanguageEnvType    string `yaml:"languageEnvType" json:"languageEnvType"`
 	LanguageEnvVersion string `yaml:"languageEnvVersion" json:"languageEnvVersion"`
+	LanguageEnvCache   string `yaml:"languageEnvCache" json:"languageEnvCache"`
 	Deploy             Deploy `yaml:"deploy" json:"deploy"`
 	Build              Build  `yaml:"build" json:"build"`
 }

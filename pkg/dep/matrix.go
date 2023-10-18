@@ -48,6 +48,7 @@ type Matrix struct {
 	Language           []Language  `json:"language"`
 	LanguageEnvType    string      `json:"languageEnvType"`
 	LanguageEnvVersion string      `json:"languageEnvVersion"`
+	LanguageEnvCache   string      `json:"languageEnvCache"`
 	ReportUrl          string      `json:"report"`
 	Err                error       `json:"-"`
 	ProjectPath        []string    `json:"projectPath"`
@@ -177,10 +178,12 @@ func (e *Matrix) FindLanguageEnv(workspace, gitopsConfigFile string) {
 	if err != nil || config == nil {
 		e.LanguageEnvType = ""
 		e.LanguageEnvVersion = ""
+		e.LanguageEnvCache = ""
 		return
 	}
 	e.LanguageEnvType = config.LanguageEnvType
 	e.LanguageEnvVersion = config.LanguageEnvVersion
+	e.LanguageEnvCache = config.LanguageEnvCache
 }
 
 // OutputReportTableToPR output report table to PR
