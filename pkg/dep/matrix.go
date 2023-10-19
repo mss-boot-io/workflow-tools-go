@@ -10,9 +10,6 @@ package dep
 import (
 	"context"
 	"fmt"
-	"github.com/mss-boot-io/workflow-tools/pkg/aws"
-	"github.com/mss-boot-io/workflow-tools/pkg/gitops"
-	"github.com/spf13/cast"
 	"io/fs"
 	"log"
 	"os"
@@ -21,8 +18,12 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v44/github"
+	"github.com/spf13/cast"
 	"github.com/zhnxin/csvreader"
 	"golang.org/x/oauth2"
+
+	"github.com/mss-boot-io/workflow-tools/pkg/aws"
+	"github.com/mss-boot-io/workflow-tools/pkg/gitops"
 )
 
 type (
