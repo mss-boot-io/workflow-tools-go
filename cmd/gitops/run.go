@@ -241,7 +241,7 @@ func run() error {
 				},
 				Spec: appv1.ApplicationSpec{
 					Project: argocdProject,
-					Source: appv1.ApplicationSource{
+					Source: &appv1.ApplicationSource{
 						RepoURL:        gitopsRepo,
 						Path:           fmt.Sprintf("%s/%s", configStage, strings.Join(leafs[i].ProjectPath, "/")),
 						TargetRevision: gitopsBranch,
