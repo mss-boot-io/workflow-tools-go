@@ -27,6 +27,8 @@ var (
 	workspace,
 	filename,
 	projectNameMatch,
+	gitopsConfigFile,
+	serviceJsonFilePath,
 	repo,
 	mark,
 	dependenceMatch string
@@ -90,6 +92,14 @@ func init() {
 	StartCmd.PersistentFlags().StringVar(&mark,
 		"mark", os.Getenv("mark"),
 		"commit sha or pull request number")
+	StartCmd.PersistentFlags().StringVar(&gitopsConfigFile,
+		"gitops-config-file",
+		os.Getenv("gitopsConfigFile"),
+		"gitops config file name")
+	StartCmd.PersistentFlags().StringVar(&serviceJsonFilePath,
+		"serviceJsonFilePath",
+		os.Getenv("serviceJsonFilePath"),
+		"service.json local store path")
 }
 
 func preRun() {
@@ -101,6 +111,12 @@ func preRun() {
 	}
 	if dependenceMatch == "" {
 		dependenceMatch = "includeBuild\\s'([^']+)'"
+	}
+	if gitopsConfigFile == "" {
+		gitopsConfigFile = "deploy-config.yml"
+	}
+	if serviceJsonFilePath == "" {
+		serviceJsonFilePath = "/tmp/service.json"
 	}
 }
 
@@ -159,6 +175,7 @@ func run() error {
 	for i := range matrix {
 		matrix[i].ProjectPath, _ = services[matrix[i].Name]
 		matrix[i].FindLanguages(workspace)
+		matrix[i].FindLanguageEnv(workspace, gitopsConfigFile)
 		if strings.Index(strings.ToLower(matrix[i].Name), dep.Airflow.String()) > -1 {
 			matrix[i].Type = dep.Airflow
 			continue
@@ -168,6 +185,17 @@ func run() error {
 			continue
 		}
 	}
+
+	// Store the service message file to the local area
+	err = pkg.CreatePath(filepath.Dir(serviceJsonFilePath))
+	if err != nil {
+		return err
+	}
+	err = pkg.WriteJsonFile(serviceJsonFilePath, &matrix)
+	if err != nil {
+		return err
+	}
+
 	key := dep.GetFilename(repo, mark, storeProvider)
 	//key := fmt.Sprintf("%s/%s/artifact/workflow/service.json", repo, mark)
 	switch storeProvider {

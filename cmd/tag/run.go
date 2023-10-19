@@ -29,7 +29,9 @@ var (
 	projectNameMatch,
 	repo,
 	storeProvider string
-	bucket, region string
+	bucket, region      string
+	gitopsConfigFile    string
+	serviceJsonFilePath string
 
 	StartCmd = &cobra.Command{
 		Use:          "tag",
@@ -80,6 +82,14 @@ func init() {
 	StartCmd.PersistentFlags().StringVar(&repo,
 		"repo", os.Getenv("repo"),
 		"repository path(github) or url")
+	StartCmd.PersistentFlags().StringVar(&gitopsConfigFile,
+		"gitops-config-file",
+		os.Getenv("gitopsConfigFile"),
+		"gitops config file name")
+	StartCmd.PersistentFlags().StringVar(&serviceJsonFilePath,
+		"serviceJsonFilePath",
+		os.Getenv("serviceJsonFilePath"),
+		"service.json local store path")
 }
 
 func preRun() {
@@ -88,6 +98,12 @@ func preRun() {
 	}
 	if projectNameMatch == "" {
 		projectNameMatch = "rootProject.name =\\s'([^']+)'"
+	}
+	if gitopsConfigFile == "" {
+		gitopsConfigFile = "deploy-config.yml"
+	}
+	if serviceJsonFilePath == "" {
+		serviceJsonFilePath = "/tmp/service.json"
 	}
 }
 
@@ -117,6 +133,7 @@ func run() error {
 	}
 
 	matrix.FindLanguages(workspace)
+	matrix.FindLanguageEnv(workspace, gitopsConfigFile)
 	if strings.Index(strings.ToLower(matrix.Name), dep.Airflow.String()) > -1 {
 		matrix.Type = dep.Airflow
 	}
@@ -125,6 +142,16 @@ func run() error {
 	}
 
 	matrices := []*dep.Matrix{matrix}
+
+	// Store the service message file to the local area
+	err = pkg.CreatePath(filepath.Dir(serviceJsonFilePath))
+	if err != nil {
+		return err
+	}
+	err = pkg.WriteJsonFile(serviceJsonFilePath, &matrix)
+	if err != nil {
+		return err
+	}
 
 	key := dep.GetFilename(repo, ref, storeProvider)
 	//key := fmt.Sprintf("%s/%s/artifact/workflow/service.json", repo, mark)

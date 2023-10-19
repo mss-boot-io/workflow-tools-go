@@ -13,6 +13,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cast"
@@ -44,6 +46,8 @@ var (
 	generateCDK8S    bool
 	storeProvider    string
 	makefileTmplPath string
+	languageEnv      string
+	singleBuildEnv   string
 	StartCmd         = &cobra.Command{
 		Use:          "mk",
 		Short:        "exec  multiple work",
@@ -51,6 +55,7 @@ var (
 		SilenceUsage: true,
 		PreRun: func(_ *cobra.Command, _ []string) {
 			log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+			preRun()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run()
@@ -125,6 +130,20 @@ func init() {
 		"makefileTmplPath",
 		os.Getenv("makefileTmplPath"),
 		"makefile template path")
+	StartCmd.PersistentFlags().StringVar(&languageEnv,
+		"languageEnv",
+		os.Getenv("languageEnv"),
+		"the language and version required for the build")
+	StartCmd.PersistentFlags().StringVar(&singleBuildEnv,
+		"singleBuildEnv",
+		os.Getenv("singleBuildEnv"),
+		"Only supports a single build locale")
+}
+
+func preRun() {
+	if singleBuildEnv == "" {
+		singleBuildEnv = "false"
+	}
 }
 
 func run() error {
@@ -159,9 +178,29 @@ func run() error {
 			return err
 		}
 	}
+
+	// When only a single build is supported, parse out the supported languages and versions.
+	var languageType, languageVersion string
+	isSingleBuildoEnv, err := strconv.ParseBool(singleBuildEnv)
+	if err != nil {
+		return err
+	}
+	if isSingleBuildoEnv {
+		pattern := "/"
+		match, err := regexp.MatchString(pattern, languageEnv)
+		if err != nil || !match {
+			return err
+		}
+		languageType = strings.Split(languageEnv, "/")[0]
+		languageVersion = strings.Split(languageEnv, "/")[1]
+	}
+
 	// Download cache if needed for any project
 	var saveCacheNeeded bool
 	for i := range leafs {
+		if isSingleBuildoEnv && (leafs[i].LanguageEnvType != languageType || leafs[i].LanguageEnvVersion != languageVersion) {
+			continue
+		}
 		if leafs[i].ProjectPath == nil || len(leafs[i].ProjectPath) == 0 {
 			leafs[i].ProjectPath = []string{leafs[i].Name}
 		}
@@ -173,7 +212,7 @@ func run() error {
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
-		if !config.Build.SkipCache {
+		if config != nil && !config.Build.SkipCache {
 			saveCacheNeeded = true
 			break
 		}
@@ -190,6 +229,10 @@ func run() error {
 
 	for i := range leafs {
 		if strings.Index(serviceType, leafs[i].Type.String()) == -1 {
+			continue
+		}
+
+		if isSingleBuildoEnv && (leafs[i].LanguageEnvType != languageType || leafs[i].LanguageEnvVersion != languageVersion) {
 			continue
 		}
 
@@ -283,6 +326,9 @@ func run() error {
 	fmt.Printf("######################## %s ########################\n", "All Service")
 	var updateCache bool
 	for i := range leafs {
+		if isSingleBuildoEnv && (leafs[i].LanguageEnvType != languageType || leafs[i].LanguageEnvVersion != languageVersion) {
+			continue
+		}
 		if leafs[i].Type == dep.Library {
 			for j := range leafs[i].Language {
 				if leafs[i].Language[j] == dep.JAVA {

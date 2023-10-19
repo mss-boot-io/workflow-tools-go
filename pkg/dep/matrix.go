@@ -10,8 +10,6 @@ package dep
 import (
 	"context"
 	"fmt"
-	"github.com/mss-boot-io/workflow-tools/pkg/aws"
-	"github.com/spf13/cast"
 	"io/fs"
 	"log"
 	"os"
@@ -20,8 +18,12 @@ import (
 	"strings"
 
 	"github.com/google/go-github/v44/github"
+	"github.com/spf13/cast"
 	"github.com/zhnxin/csvreader"
 	"golang.org/x/oauth2"
+
+	"github.com/mss-boot-io/workflow-tools/pkg/aws"
+	"github.com/mss-boot-io/workflow-tools/pkg/gitops"
 )
 
 type (
@@ -42,15 +44,18 @@ const (
 )
 
 type Matrix struct {
-	Name        string      `json:"name"`
-	Type        ServiceType `json:"type"`
-	Language    []Language  `json:"language"`
-	ReportUrl   string      `json:"report"`
-	Err         error       `json:"-"`
-	ProjectPath []string    `json:"projectPath"`
-	Finish      bool        `json:"-"`
-	Reports     []Report    `json:"_"`
-	Coverage    float64     `json:"coverage"`
+	Name               string      `json:"name"`
+	Type               ServiceType `json:"type"`
+	Language           []Language  `json:"language"`
+	LanguageEnvType    string      `json:"languageEnvType"`
+	LanguageEnvVersion string      `json:"languageEnvVersion"`
+	LanguageEnvCache   string      `json:"languageEnvCache"`
+	ReportUrl          string      `json:"report"`
+	Err                error       `json:"-"`
+	ProjectPath        []string    `json:"projectPath"`
+	Finish             bool        `json:"-"`
+	Reports            []Report    `json:"_"`
+	Coverage           float64     `json:"coverage"`
 }
 
 func (e *Matrix) LanguageString() string {
@@ -167,6 +172,19 @@ func (e *Matrix) FindLanguages(workspace string) {
 	if node {
 		e.Language = append(e.Language, Node)
 	}
+}
+
+func (e *Matrix) FindLanguageEnv(workspace, gitopsConfigFile string) {
+	config, err := gitops.LoadFile(filepath.Join(workspace, filepath.Join(e.ProjectPath...), gitopsConfigFile))
+	if err != nil || config == nil {
+		e.LanguageEnvType = ""
+		e.LanguageEnvVersion = ""
+		e.LanguageEnvCache = ""
+		return
+	}
+	e.LanguageEnvType = config.LanguageEnvType
+	e.LanguageEnvVersion = config.LanguageEnvVersion
+	e.LanguageEnvCache = config.LanguageEnvCache
 }
 
 // OutputReportTableToPR output report table to PR
