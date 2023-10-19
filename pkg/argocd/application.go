@@ -36,7 +36,7 @@ func (c *Client) existApplication(app *appv1.Application) bool {
 		return false
 	}
 	defer response.Body.Close()
-	if response.StatusCode == http.StatusNotFound {
+	if response.StatusCode == http.StatusNotFound || response.StatusCode == http.StatusForbidden {
 		fmt.Printf("application %s not found\n", name)
 		return false
 	}
