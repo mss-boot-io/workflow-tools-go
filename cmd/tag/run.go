@@ -148,7 +148,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	err = pkg.WriteJsonFile(serviceJsonFilePath, &matrix)
+	err = pkg.WriteJsonFile(serviceJsonFilePath, &matrices)
 	if err != nil {
 		return err
 	}
@@ -164,6 +164,6 @@ func run() error {
 		if err != nil {
 			return err
 		}
-		return pkg.WriteJsonFile(key, &matrix)
+		return pkg.WriteJsonFile(key, &matrices)
 	}
 }
