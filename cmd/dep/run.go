@@ -19,6 +19,7 @@ import (
 	"github.com/mss-boot-io/workflow-tools/pkg/aws"
 	"github.com/mss-boot-io/workflow-tools/pkg/change"
 	"github.com/mss-boot-io/workflow-tools/pkg/dep"
+	"github.com/mss-boot-io/workflow-tools/pkg/minio"
 )
 
 var (
@@ -32,10 +33,12 @@ var (
 	repo,
 	mark,
 	dependenceMatch string
-	storeProvider  string
-	bucket, region string
-
-	StartCmd = &cobra.Command{
+	storeProvider        string
+	bucket, region       string
+	minioEndpoint        string
+	minioAccessKey       string
+	minioSecretAccessKey string
+	StartCmd             = &cobra.Command{
 		Use:          "dep",
 		Short:        "exec gradle dependency output leaf service and library",
 		Example:      "go-workflow-tools dep",
@@ -76,7 +79,7 @@ func init() {
 		"dependence match")
 	StartCmd.PersistentFlags().StringVar(&storeProvider,
 		"store-provider",
-		"s3",
+		os.Getenv("storeProvider"),
 		"store provider")
 	StartCmd.PersistentFlags().StringVar(&bucket,
 		"bucket",
@@ -100,6 +103,15 @@ func init() {
 		"serviceJsonFilePath",
 		os.Getenv("serviceJsonFilePath"),
 		"service.json local store path")
+	StartCmd.PersistentFlags().StringVar(&minioEndpoint,
+		"minioEndpoint", os.Getenv("minioEndpoint"),
+		"minioEndpoint")
+	StartCmd.PersistentFlags().StringVar(&minioAccessKey,
+		"minioAccessKey", os.Getenv("minioAccessKey"),
+		"minioAccessKey")
+	StartCmd.PersistentFlags().StringVar(&minioSecretAccessKey,
+		"minioSecretAccessKey", os.Getenv("minioSecretAccessKey"),
+		"minioSecretAccessKey")
 }
 
 func preRun() {
@@ -117,6 +129,9 @@ func preRun() {
 	}
 	if serviceJsonFilePath == "" {
 		serviceJsonFilePath = "/tmp/service.json"
+	}
+	if storeProvider == "" {
+		storeProvider = "s3"
 	}
 }
 
@@ -137,6 +152,9 @@ func run() error {
 	switch storeProvider {
 	case "s3":
 		err = aws.GetObjectFromS3(region, bucket, change.GetFilename(repo, mark, storeProvider), &files)
+	case "minio":
+		minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey)
+		err = minioCli.GetObject(bucket, change.GetFilename(repo, mark, storeProvider), &files)
 	default:
 		err = pkg.ReadJsonFile(change.GetFilename("", "", storeProvider), &files)
 	}
@@ -201,6 +219,9 @@ func run() error {
 	switch storeProvider {
 	case "s3":
 		return aws.PutObjectToS3(region, bucket, key, &matrix, "application/json")
+	case "minio":
+		minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey)
+		return minioCli.PutObject(bucket, key, &matrix)
 	default:
 		//默认使用文件
 		err = pkg.CreatePath(filepath.Dir(key))

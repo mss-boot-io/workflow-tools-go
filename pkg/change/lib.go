@@ -16,7 +16,7 @@ import (
 // GetFilename get filename for change files list
 func GetFilename(repo, mark, provider string) string {
 	switch strings.ToLower(provider) {
-	case "s3":
+	case "s3", "minio":
 		return fmt.Sprintf("%s/%s/artifact/workflow/changed.json", repo, mark)
 	default:
 		return filepath.Join("artifact", "workflow", "changed.json")
