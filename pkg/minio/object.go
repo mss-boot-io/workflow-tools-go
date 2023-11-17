@@ -18,7 +18,7 @@ func New(endpoint, accessKey, secretAccessKey string) *MinioClient {
 	minioClient := &MinioClient{}
 	minioClient.client, _ = minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretAccessKey, ""),
-		Secure: false,
+		Secure: true,
 	})
 	return minioClient
 }
