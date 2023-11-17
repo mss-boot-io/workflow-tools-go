@@ -19,6 +19,7 @@ import (
 	"github.com/mss-boot-io/workflow-tools/pkg/aws"
 	"github.com/mss-boot-io/workflow-tools/pkg/change"
 	"github.com/mss-boot-io/workflow-tools/pkg/change/github"
+	"github.com/mss-boot-io/workflow-tools/pkg/minio"
 )
 
 var (
@@ -27,14 +28,18 @@ var (
 	mark,
 	storeProvider,
 	repo string
-	bucket, region string
-	StartCmd       = &cobra.Command{
+	minioEndpoint        string
+	minioAccessKey       string
+	minioSecretAccessKey string
+	bucket, region       string
+	StartCmd             = &cobra.Command{
 		Use:          "change",
 		Short:        "exec change for the repo",
 		Example:      "go-workflow-tools change",
 		SilenceUsage: true,
 		PreRun: func(_ *cobra.Command, _ []string) {
 			log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+			preRun()
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return run()
@@ -45,7 +50,7 @@ var (
 func init() {
 	StartCmd.PersistentFlags().StringVar(&storeProvider,
 		"store-provider",
-		"s3",
+		os.Getenv("storeProvider"),
 		"store provider")
 	StartCmd.PersistentFlags().StringVar(&provider,
 		"provider", os.Getenv("provider"),
@@ -67,6 +72,21 @@ func init() {
 		"region",
 		os.Getenv("region"),
 		"region")
+	StartCmd.PersistentFlags().StringVar(&minioEndpoint,
+		"minioEndpoint", os.Getenv("minioEndpoint"),
+		"minioEndpoint")
+	StartCmd.PersistentFlags().StringVar(&minioAccessKey,
+		"minioAccessKey", os.Getenv("minioAccessKey"),
+		"minioAccessKey")
+	StartCmd.PersistentFlags().StringVar(&minioSecretAccessKey,
+		"minioSecretAccessKey", os.Getenv("minioSecretAccessKey"),
+		"minioSecretAccessKey")
+}
+
+func preRun() {
+	if storeProvider == "" {
+		storeProvider = "s3"
+	}
 }
 
 func run() error {
@@ -89,6 +109,9 @@ func run() error {
 		switch storeProvider {
 		case "s3":
 			return aws.PutObjectToS3(region, bucket, key, *files, "")
+		case "minio":
+			minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey)
+			return minioCli.PutObject(bucket, key, *files)
 		default:
 			//默认使用文件
 			err = pkg.CreatePath(filepath.Dir(key))

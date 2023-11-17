@@ -25,6 +25,7 @@ import (
 	"github.com/mss-boot-io/workflow-tools/pkg/cdk8s"
 	"github.com/mss-boot-io/workflow-tools/pkg/dep"
 	"github.com/mss-boot-io/workflow-tools/pkg/gitops"
+	"github.com/mss-boot-io/workflow-tools/pkg/minio"
 )
 
 var (
@@ -41,14 +42,17 @@ var (
 	configStage,
 	gitopsConfigFile,
 	serviceType string
-	errorBlock       bool
-	dockerPush       bool
-	generateCDK8S    bool
-	storeProvider    string
-	makefileTmplPath string
-	languageEnv      string
-	singleBuildEnv   string
-	StartCmd         = &cobra.Command{
+	errorBlock           bool
+	dockerPush           bool
+	generateCDK8S        bool
+	storeProvider        string
+	makefileTmplPath     string
+	languageEnv          string
+	singleBuildEnv       string
+	minioEndpoint        string
+	minioAccessKey       string
+	minioSecretAccessKey string
+	StartCmd             = &cobra.Command{
 		Use:          "mk",
 		Short:        "exec  multiple work",
 		Example:      "go-workflow-tools mk",
@@ -70,7 +74,7 @@ func init() {
 		"gitops config file name")
 	StartCmd.PersistentFlags().StringVar(&storeProvider,
 		"store-provider",
-		"s3",
+		os.Getenv("storeProvider"),
 		"store provider")
 	StartCmd.PersistentFlags().StringVar(&bucket,
 		"bucket",
@@ -138,11 +142,23 @@ func init() {
 		"singleBuildEnv",
 		os.Getenv("singleBuildEnv"),
 		"Only supports a single build locale")
+	StartCmd.PersistentFlags().StringVar(&minioEndpoint,
+		"minioEndpoint", os.Getenv("minioEndpoint"),
+		"minioEndpoint")
+	StartCmd.PersistentFlags().StringVar(&minioAccessKey,
+		"minioAccessKey", os.Getenv("minioAccessKey"),
+		"minioAccessKey")
+	StartCmd.PersistentFlags().StringVar(&minioSecretAccessKey,
+		"minioSecretAccessKey", os.Getenv("minioSecretAccessKey"),
+		"minioSecretAccessKey")
 }
 
 func preRun() {
 	if singleBuildEnv == "" {
 		singleBuildEnv = "false"
+	}
+	if storeProvider == "" {
+		storeProvider = "s3"
 	}
 }
 
@@ -170,6 +186,9 @@ func run() error {
 		switch storeProvider {
 		case "s3":
 			err = aws.GetObjectFromS3(region, bucket, key, &leafs)
+		case "minio":
+			minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey)
+			err = minioCli.GetObject(bucket, key, &leafs)
 		default:
 			err = pkg.ReadJsonFile(key, &leafs)
 		}

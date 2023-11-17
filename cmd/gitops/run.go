@@ -28,6 +28,7 @@ import (
 	"github.com/mss-boot-io/workflow-tools/pkg/aws"
 	"github.com/mss-boot-io/workflow-tools/pkg/dep"
 	"github.com/mss-boot-io/workflow-tools/pkg/gitops"
+	"github.com/mss-boot-io/workflow-tools/pkg/minio"
 )
 
 var (
@@ -46,10 +47,13 @@ var (
 	gitopsConfigFile,
 	workspace,
 	storeProvider string
-	languageEnv  string
-	singleGitops string
-	errorBlock   bool
-	StartCmd     = &cobra.Command{
+	languageEnv          string
+	singleGitops         string
+	minioEndpoint        string
+	minioAccessKey       string
+	minioSecretAccessKey string
+	errorBlock           bool
+	StartCmd             = &cobra.Command{
 		Use:          "gitops",
 		Short:        "exec  multiple work to gitops",
 		Example:      "go-workflow-tools gitops",
@@ -99,7 +103,7 @@ func init() {
 		"gitops branch")
 	StartCmd.PersistentFlags().StringVar(&storeProvider,
 		"store-provider",
-		"s3",
+		os.Getenv("storeProvider"),
 		"store provider")
 	StartCmd.PersistentFlags().StringVar(&bucket,
 		"bucket",
@@ -134,11 +138,23 @@ func init() {
 		"singleGitops",
 		os.Getenv("singleGitops"),
 		"only supported build languages and corresponding versions")
+	StartCmd.PersistentFlags().StringVar(&minioEndpoint,
+		"minioEndpoint", os.Getenv("minioEndpoint"),
+		"minioEndpoint")
+	StartCmd.PersistentFlags().StringVar(&minioAccessKey,
+		"minioAccessKey", os.Getenv("minioAccessKey"),
+		"minioAccessKey")
+	StartCmd.PersistentFlags().StringVar(&minioSecretAccessKey,
+		"minioSecretAccessKey", os.Getenv("minioSecretAccessKey"),
+		"minioSecretAccessKey")
 }
 
 func preRun() {
 	if singleGitops == "" {
 		singleGitops = "false"
+	}
+	if storeProvider == "" {
+		storeProvider = "s3"
 	}
 }
 
@@ -166,6 +182,9 @@ func run() error {
 		switch storeProvider {
 		case "s3":
 			err = aws.GetObjectFromS3(region, bucket, key, &leafs)
+		case "minio":
+			minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey)
+			err = minioCli.GetObject(bucket, key, &leafs)
 		default:
 			err = pkg.ReadJsonFile(key, &leafs)
 		}
