@@ -38,6 +38,7 @@ var (
 	minioEndpoint        string
 	minioAccessKey       string
 	minioSecretAccessKey string
+	minioSSL             string
 	StartCmd             = &cobra.Command{
 		Use:          "dep",
 		Short:        "exec gradle dependency output leaf service and library",
@@ -112,6 +113,9 @@ func init() {
 	StartCmd.PersistentFlags().StringVar(&minioSecretAccessKey,
 		"minioSecretAccessKey", os.Getenv("minioSecretAccessKey"),
 		"minioSecretAccessKey")
+	StartCmd.PersistentFlags().StringVar(&minioSSL,
+		"minioSSL", os.Getenv("minioSSL"),
+		"use ssl in minio transmission")
 }
 
 func preRun() {
@@ -133,6 +137,9 @@ func preRun() {
 	if storeProvider == "" {
 		storeProvider = "s3"
 	}
+	if minioSSL == "" {
+		minioSSL = "true"
+	}
 }
 
 func run() error {
@@ -153,7 +160,7 @@ func run() error {
 	case "s3":
 		err = aws.GetObjectFromS3(region, bucket, change.GetFilename(repo, mark, storeProvider), &files)
 	case "minio":
-		minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey)
+		minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey, minioSSL)
 		err = minioCli.GetObject(bucket, change.GetFilename(repo, mark, storeProvider), &files)
 	default:
 		err = pkg.ReadJsonFile(change.GetFilename("", "", storeProvider), &files)
@@ -220,7 +227,7 @@ func run() error {
 	case "s3":
 		return aws.PutObjectToS3(region, bucket, key, &matrix, "application/json")
 	case "minio":
-		minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey)
+		minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey, minioSSL)
 		return minioCli.PutObject(bucket, key, &matrix)
 	default:
 		//默认使用文件

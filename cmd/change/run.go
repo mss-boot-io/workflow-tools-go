@@ -31,6 +31,7 @@ var (
 	minioEndpoint        string
 	minioAccessKey       string
 	minioSecretAccessKey string
+	minioSSL             string
 	bucket, region       string
 	StartCmd             = &cobra.Command{
 		Use:          "change",
@@ -81,11 +82,17 @@ func init() {
 	StartCmd.PersistentFlags().StringVar(&minioSecretAccessKey,
 		"minioSecretAccessKey", os.Getenv("minioSecretAccessKey"),
 		"minioSecretAccessKey")
+	StartCmd.PersistentFlags().StringVar(&minioSSL,
+		"minioSSL", os.Getenv("minioSSL"),
+		"use ssl in minio transmission")
 }
 
 func preRun() {
 	if storeProvider == "" {
 		storeProvider = "s3"
+	}
+	if minioSSL == "" {
+		minioSSL = "true"
 	}
 }
 
@@ -110,7 +117,7 @@ func run() error {
 		case "s3":
 			return aws.PutObjectToS3(region, bucket, key, *files, "")
 		case "minio":
-			minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey)
+			minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey, minioSSL)
 			return minioCli.PutObject(bucket, key, *files)
 		default:
 			//默认使用文件

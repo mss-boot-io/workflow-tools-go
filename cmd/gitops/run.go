@@ -52,6 +52,7 @@ var (
 	minioEndpoint        string
 	minioAccessKey       string
 	minioSecretAccessKey string
+	minioSSL             string
 	errorBlock           bool
 	StartCmd             = &cobra.Command{
 		Use:          "gitops",
@@ -147,6 +148,9 @@ func init() {
 	StartCmd.PersistentFlags().StringVar(&minioSecretAccessKey,
 		"minioSecretAccessKey", os.Getenv("minioSecretAccessKey"),
 		"minioSecretAccessKey")
+	StartCmd.PersistentFlags().StringVar(&minioSSL,
+		"minioSSL", os.Getenv("minioSSL"),
+		"use ssl in minio transmission")
 }
 
 func preRun() {
@@ -155,6 +159,9 @@ func preRun() {
 	}
 	if storeProvider == "" {
 		storeProvider = "s3"
+	}
+	if minioSSL == "" {
+		minioSSL = "true"
 	}
 }
 
@@ -183,7 +190,7 @@ func run() error {
 		case "s3":
 			err = aws.GetObjectFromS3(region, bucket, key, &leafs)
 		case "minio":
-			minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey)
+			minioCli := minio.New(minioEndpoint, minioAccessKey, minioSecretAccessKey, minioSSL)
 			err = minioCli.GetObject(bucket, key, &leafs)
 		default:
 			err = pkg.ReadJsonFile(key, &leafs)
