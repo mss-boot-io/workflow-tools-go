@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"strconv"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -14,11 +15,12 @@ type MinioClient struct {
 	client *minio.Client
 }
 
-func New(endpoint, accessKey, secretAccessKey string) *MinioClient {
+func New(endpoint, accessKey, secretAccessKey, useSSL string) *MinioClient {
 	minioClient := &MinioClient{}
+	isSSL, _ := strconv.ParseBool(useSSL)
 	minioClient.client, _ = minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretAccessKey, ""),
-		Secure: true,
+		Secure: isSSL,
 	})
 	return minioClient
 }
