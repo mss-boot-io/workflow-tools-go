@@ -1,0 +1,31 @@
+---
+groups:
+  - name: "cluster-manager"
+    rules:
+      - alert: "serverDown"
+        expr: "up{app='cluster-manager', cluster='chainide-uat|chainide-prod'} < 1"
+        annotations:
+          summary: "{{ $labels.kubernetes_namespace }} {{$labels.app}} server is down"
+          description: "{{ $labels.kubernetes_namespace }} {{$labels.app}} is not 100% available"
+        labels:
+          severity: "critical"
+          project: chainide
+        for: "3m"
+      - alert: "cpuTooHeight"
+        expr: "sum(irate(container_cpu_usage_seconds_total{container='cluster-manager', cluster='chainide-uat|chainide-prod'}[5m])*100) by (pod) > 70"
+        annotations:
+          summary: "{{ $labels.kubernetes_namespace }} {{$labels.app}} cpu usage is exceed threshold"
+          description: "{{ $labels.kubernetes_namespace }} {{$labels.app}} usage is exceed threshold: 70%"
+        labels:
+          severity: "critical"
+          project: chainide
+        for: "2m"
+      - alert: "Service_Response_5xx"
+        expr: "increase(istio_requests_total{app='cluster-manager', cluster='chainide-uat|chainide-prod', response_code=~'5.*'}[1m]) > 0"
+        annotations:
+          summary: "{{ $labels.kubernetes_namespace }} {{$labels.app}} response 5xx"
+          description: "{{ $labels.cluster }} {{$labels.kubernetes_namespace}} {{$labels.app}} response {{$labels.response_code}}"
+        labels:
+          severity: "critical"
+          project: chainide
+        for: "1m"
