@@ -63,7 +63,7 @@ func (e *Matrix) Alert(workspace, filename, prometheusPrefix, prometheusUsername
 	rules := &GroupRule{}
 	err := pkg.ReadYamlFile(filename, rules)
 	if err != nil {
-		return err
+		return nil
 	}
 	group := "anonymous"
 	if e.Project != "" {
