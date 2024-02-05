@@ -349,7 +349,9 @@ func run() error {
 				leafs[i].ProjectPath)
 
 		}
-		err = leafs[i].Alert(workspace, rulesFilename, alertManagerPrefix, alertManagerUsername, alertManagerPassword)
+		if configStage == "prod" {
+			err = leafs[i].Alert(workspace, rulesFilename, alertManagerPrefix, alertManagerUsername, alertManagerPassword)
+		}
 		if err != nil {
 			// ignore alert error
 			fmt.Printf("### ignore alert rule error: %s\n", err.Error())
