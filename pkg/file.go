@@ -10,6 +10,8 @@ package pkg
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"gopkg.in/yaml.v3"
 	"io"
 	"log"
 	"os"
@@ -94,4 +96,23 @@ func CopyFile(sourceFile, destinationFile string) error {
 	}
 
 	return nil
+}
+
+// ReadYamlFile 读取yaml文件
+func ReadYamlFile(path string, data any) error {
+	if !PathExist(path + ".yml") {
+		if !PathExist(path + ".yaml") {
+			return fmt.Errorf("%s not found", path)
+		} else {
+			path = path + ".yaml"
+		}
+	} else {
+		path = path + ".yml"
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return yaml.NewDecoder(f).Decode(data)
 }

@@ -41,6 +41,10 @@ var (
 	dockerTags,
 	configStage,
 	gitopsConfigFile,
+	rulesFilename,
+	alertManagerPrefix,
+	alertManagerUsername,
+	alertManagerPassword,
 	serviceType string
 	errorBlock           bool
 	dockerPush           bool
@@ -85,6 +89,22 @@ func init() {
 		"region",
 		os.Getenv("region"),
 		"region")
+	StartCmd.PersistentFlags().StringVar(&rulesFilename,
+		"rules-filename",
+		"alert_manager_rules",
+		"rules-filename")
+	StartCmd.PersistentFlags().StringVar(&alertManagerPrefix,
+		"alert-manager-prefix",
+		os.Getenv("alert_manager_prefix"),
+		"alert-manager-prefix")
+	StartCmd.PersistentFlags().StringVar(&alertManagerUsername,
+		"alert-manager-username",
+		os.Getenv("alert_manager_username"),
+		"alert-manager-username")
+	StartCmd.PersistentFlags().StringVar(&alertManagerPassword,
+		"alert-manager-password",
+		os.Getenv("alert_manager_password"),
+		"alert-manager-password")
 	StartCmd.PersistentFlags().StringVar(&serviceType,
 		"service-type",
 		os.Getenv("service_type"),
@@ -268,6 +288,7 @@ func run() error {
 		if leafs[i].Err != nil && errorBlock {
 			break
 		}
+		leafs[i].Project = gitopsConfig.Project
 		var dockerImage string
 		if gitopsConfig != nil {
 			dockerImage = gitopsConfig.GetImage(leafs[i].Name)
@@ -327,6 +348,14 @@ func run() error {
 				fmt.Sprintf("%s:%s", dockerImage, dockerTags),
 				leafs[i].ProjectPath)
 
+		}
+		if configStage == "prod" {
+			err = leafs[i].Alert(workspace, rulesFilename, alertManagerPrefix, alertManagerUsername, alertManagerPassword)
+		}
+		if err != nil {
+			// ignore alert error
+			fmt.Printf("### ignore alert rule error: %s\n", err.Error())
+			err = nil
 		}
 		if leafs[i].Err != nil {
 			fmt.Println("Failed")

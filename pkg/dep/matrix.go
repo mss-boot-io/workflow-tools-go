@@ -56,6 +56,7 @@ type Matrix struct {
 	Finish             bool        `json:"-"`
 	Reports            []Report    `json:"_"`
 	Coverage           float64     `json:"coverage"`
+	Project            string      `json:"project"`
 }
 
 func (e *Matrix) LanguageString() string {
