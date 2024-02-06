@@ -52,7 +52,7 @@ jobs:
         env:
           CGO_ENABLED: 0
           GOOS: ${{ matrix.os }}
-          GOARCH: a${{ matrix.arch }}
+          GOARCH: ${{ matrix.arch }}
         run: |
           if [ ${GOOS} == windows ];then
             export app=workflow-tools.exe
