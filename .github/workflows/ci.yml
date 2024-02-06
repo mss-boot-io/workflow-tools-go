@@ -94,3 +94,6 @@ jobs:
             public/linux_amd64.tar.gz
             public/windows_amd64.tar.gz
             public/darwin_amd64.tar.gz
+            public/linux_arm64.tar.gz
+            public/windows_arm64.tar.gz
+            public/darwin_arm64.tar.gz
