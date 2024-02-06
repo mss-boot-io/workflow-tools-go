@@ -39,6 +39,7 @@ jobs:
     strategy:
       matrix:
         os: [ linux, darwin, windows ]
+        arch: [ amd64, arm64 ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
@@ -51,7 +52,7 @@ jobs:
         env:
           CGO_ENABLED: 0
           GOOS: ${{ matrix.os }}
-          GOARCH: amd64
+          GOARCH: ${{ matrix.arch }}
         run: |
           if [ ${GOOS} == windows ];then
             export app=workflow-tools.exe
