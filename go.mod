@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/rds v1.54.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.39.0
 	github.com/google/go-github/v44 v44.1.1-0.20220516192235-2d872b40760d
-	github.com/mss-boot-io/cd-template v0.1.6
+	github.com/mss-boot-io/cd-template v0.1.7
 	github.com/sanity-io/litter v1.5.5
 	github.com/spf13/cast v1.6.0
 	github.com/spf13/cobra v1.7.0
