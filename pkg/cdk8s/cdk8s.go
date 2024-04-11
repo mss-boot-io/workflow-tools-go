@@ -17,7 +17,7 @@ func Generate(configPath, stageStr, image string, servicePath []string) {
 	config.NewConfig(&configPath)
 	switch stageStr {
 	case "dev", "test", "local", "alpha", "beta", "staging":
-		config.Cfg.Hpa = false
+		config.Cfg.Hpa.Enabled = false
 		config.Cfg.Resources = nil
 		config.Cfg.Replicas = config.Cfg.TestReplicas
 	}
