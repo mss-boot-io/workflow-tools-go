@@ -632,8 +632,8 @@ github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 h1:n6/
 github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00/go.mod h1:Pm3mSP3c5uWn86xMLZ5Sa7JB9GsEZySvHYXCTK4E9q4=
 github.com/morikuni/aec v1.0.0/go.mod h1:BbKIizmSmc5MMPqRYbxO4ZU0S0+P200+tUnFx7PXmsc=
 github.com/mrunalp/fileutils v0.5.0/go.mod h1:M1WthSahJixYnrXQl/DFQuteStB1weuxD2QJNHXfbSQ=
-github.com/mss-boot-io/cd-template v0.1.9 h1:2utG1f8BgF0t8EkaP9sjRVQIgjGFVjfxauE2LEW9hBg=
-github.com/mss-boot-io/cd-template v0.1.9/go.mod h1:dR4novIbw9ClOYgdT/jnD0W/HZldmp5mvOo92flOXJw=
+github.com/mss-boot-io/cd-template v0.2.0 h1:kRDVAgASQKomM08bg4/TUi3tr2vJDQnAxRQHU8B4n9c=
+github.com/mss-boot-io/cd-template v0.2.0/go.mod h1:dR4novIbw9ClOYgdT/jnD0W/HZldmp5mvOo92flOXJw=
 github.com/munnerz/goautoneg v0.0.0-20120707110453-a547fc61f48d/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 h1:C3w9PqII01/Oq1c1nUAm88MOHcQC9l5mIlSMApZMrHA=
 github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822/go.mod h1:+n7T8mK8HuQTcFwEeznm/DIxMOiR9yIdICNftLE1DvQ=
