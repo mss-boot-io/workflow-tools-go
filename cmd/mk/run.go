@@ -318,10 +318,9 @@ func run() error {
 			}
 
 		}
-		if cmd != "" {
-			cmd = "&" + cmd
+		if cmd == "" {
+			cmd = os.Getenv("cmd")
 		}
-		cmd = os.Getenv("cmd") + cmd
 		fmt.Printf("### cmd: %s\n", cmd)
 
 		// copy makefile template to service path if not exist
@@ -338,7 +337,7 @@ func run() error {
 			}
 		}
 
-		leafs[i].Err = leafs[i].Run(workspace, os.Getenv("cmd"), dockerImage, dockerTags, dockerPush)
+		leafs[i].Err = leafs[i].Run(workspace, cmd, dockerImage, dockerTags, dockerPush)
 		leafs[i].Finish = true
 		fmt.Print("###   ")
 		if leafs[i].Type == dep.Service && leafs[i].Err == nil && generateCDK8S {
