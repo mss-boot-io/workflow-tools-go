@@ -218,6 +218,15 @@ func (e *Matrix) FindLanguageEnv(workspace, gitopsConfigFile string) {
 	e.LanguageEnvCache = config.LanguageEnvCache
 }
 
+func (e *Matrix) FindArmImageBuild(workspace, gitopsConfigFile string) {
+	config, err := gitops.LoadFile(filepath.Join(workspace, filepath.Join(e.ProjectPath...), gitopsConfigFile))
+	if err != nil || config == nil {
+		e.ArmImageNeeds = false
+		return
+	}
+	e.ArmImageNeeds = config.ArmImageNeeds
+}
+
 // OutputReportTableToPR output report table to PR
 func OutputReportTableToPR(repoPath string, number int, list []Matrix) (err error) {
 	if repoPath == "" || len(strings.Split(repoPath, "/")) < 2 {
