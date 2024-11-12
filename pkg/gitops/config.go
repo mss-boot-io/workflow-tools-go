@@ -23,6 +23,7 @@ type Config struct {
 	LanguageEnvType    string `yaml:"languageEnvType" json:"languageEnvType"`
 	LanguageEnvVersion string `yaml:"languageEnvVersion" json:"languageEnvVersion"`
 	LanguageEnvCache   string `yaml:"languageEnvCache" json:"languageEnvCache"`
+	ArmImageNeeds      bool   `yaml:"armImageNeeds" json:"armImageNeeds"`
 	Deploy             Deploy `yaml:"deploy" json:"deploy"`
 	Build              Build  `yaml:"build" json:"build"`
 }

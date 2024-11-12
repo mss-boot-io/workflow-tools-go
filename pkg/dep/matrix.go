@@ -152,6 +152,9 @@ func (e *Matrix) Run(workspace, cs, dockerImage, dockerTags string, dockerPush b
 			}
 		}
 	}
+	fmt.Println("------------------------------------------")
+	fmt.Println(e.ArmImageNeeds)
+	fmt.Println(cs)
 	cmd := exec.Command("/bin/bash", "-c", cs)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
