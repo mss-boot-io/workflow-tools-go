@@ -57,6 +57,7 @@ type Matrix struct {
 	Reports            []Report    `json:"_"`
 	Coverage           float64     `json:"coverage"`
 	Project            string      `json:"project"`
+	ArmImageNeeds      bool        `json:"armImageNeeds"`
 }
 
 func (e *Matrix) LanguageString() string {
@@ -79,16 +80,32 @@ func (e *Matrix) Run(workspace, cs, dockerImage, dockerTags string, dockerPush b
 	} else {
 		cs = fmt.Sprintf("cd %s && %s", filepath.Join(e.ProjectPath...), cs)
 	}
-	if dockerImage != "" && e.Type == Service {
-		cs += fmt.Sprintf(" && docker build -t %s:latest .", dockerImage)
+
+	var withArmBuild bool
+	if e.ArmImageNeeds {
+		withArmBuild = true
+		buildxCommandPref := "docker run --privileged --rm tonistiigi/binfmt --install all && docker buildx create --use --name mybuild default"
+		buildxInstall := exec.Command("/bin/bash", "-c", buildxCommandPref)
+		buildxInstall.Stdout = os.Stdout
+		buildxInstall.Stderr = os.Stderr
+		err := buildxInstall.Run()
+		if err != nil {
+			log.Println(err)
+			withArmBuild = false
+		}
 	}
+
+	//if dockerImage != "" && e.Type == Service {
+	//	cs += fmt.Sprintf(" && docker build -t %s:latest .", dockerImage)
+	//}
 	if dockerImage != "" && dockerTags != "" && e.Type == Service {
 		var pushLatest bool
 		for _, tag := range strings.Split(dockerTags, ",") {
 			if strings.Index(tag, "v") > -1 && len(tag) < 10 {
 				pushLatest = true
 			}
-			cs += fmt.Sprintf(" && docker tag %s:latest %s:%s", dockerImage, dockerImage, tag)
+			//cs += fmt.Sprintf(" && docker tag %s:latest %s:%s", dockerImage, dockerImage, tag)
+			// Log in to the image repository
 			if dockerPush {
 				if strings.Index(dockerImage, "amazonaws.com") > -1 {
 					// aws ecr
@@ -118,11 +135,21 @@ func (e *Matrix) Run(workspace, cs, dockerImage, dockerTags string, dockerPush b
 						arr[0],
 						arr[0])
 				}
-				cs += fmt.Sprintf(" && docker push %s:%s", dockerImage, tag)
+				if withArmBuild {
+					cs += fmt.Sprintf(" && docker buildx build -t %s:%s --platform=linux/arm64,linux/amd64 . --push", dockerImage, tag)
+				} else {
+					cs += fmt.Sprintf(" && docker build -t %s:latest .", dockerImage)
+					cs += fmt.Sprintf(" && docker tag %s:latest %s:%s", dockerImage, dockerImage, tag)
+					cs += fmt.Sprintf(" && docker push %s:%s", dockerImage, tag)
+				}
 			}
 		}
 		if pushLatest && dockerPush {
-			cs += fmt.Sprintf(" && docker push %s:latest", dockerImage)
+			if withArmBuild {
+				cs += fmt.Sprintf(" && docker buildx build -t %s:latest --platform=linux/arm64,linux/amd64 . --push", dockerImage)
+			} else {
+				cs += fmt.Sprintf(" && docker push %s:latest", dockerImage)
+			}
 		}
 	}
 	cmd := exec.Command("/bin/bash", "-c", cs)
@@ -186,6 +213,15 @@ func (e *Matrix) FindLanguageEnv(workspace, gitopsConfigFile string) {
 	e.LanguageEnvType = config.LanguageEnvType
 	e.LanguageEnvVersion = config.LanguageEnvVersion
 	e.LanguageEnvCache = config.LanguageEnvCache
+}
+
+func (e *Matrix) FindArmImageBuild(workspace, gitopsConfigFile string) {
+	config, err := gitops.LoadFile(filepath.Join(workspace, filepath.Join(e.ProjectPath...), gitopsConfigFile))
+	if err != nil || config == nil {
+		e.ArmImageNeeds = false
+		return
+	}
+	e.ArmImageNeeds = config.ArmImageNeeds
 }
 
 // OutputReportTableToPR output report table to PR
