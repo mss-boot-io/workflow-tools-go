@@ -156,6 +156,7 @@ func run() error {
 
 	matrix.FindLanguages(workspace)
 	matrix.FindLanguageEnv(workspace, gitopsConfigFile)
+	matrix.FindArmImageBuild(workspace, gitopsConfigFile)
 	if strings.Index(strings.ToLower(matrix.Name), dep.Airflow.String()) > -1 {
 		matrix.Type = dep.Airflow
 	}
