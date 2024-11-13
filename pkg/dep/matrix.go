@@ -151,6 +151,12 @@ func (e *Matrix) Run(workspace, cs, dockerImage, dockerTags string, dockerPush b
 				cs += fmt.Sprintf(" && docker push %s:latest", dockerImage)
 			}
 		}
+	} else if dockerImage != "" && dockerTags == "" && e.Type == Service {
+		if withArmBuild {
+			cs += fmt.Sprintf(" && docker buildx build -t %s:latest --platform=linux/arm64,linux/amd64 .", dockerImage)
+		} else {
+			cs += fmt.Sprintf(" && docker build -t %s:latest .", dockerImage)
+		}
 	}
 	cmd := exec.Command("/bin/bash", "-c", cs)
 	cmd.Stdout = os.Stdout
