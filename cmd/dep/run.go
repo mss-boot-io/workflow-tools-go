@@ -186,7 +186,7 @@ func run() error {
 		}
 		var exist bool
 		for i := range ignores {
-			if strings.Index(c, ignores[i]) > -1 {
+			if ignores[i] == c {
 				exist = true
 				break
 			}
