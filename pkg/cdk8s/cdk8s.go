@@ -22,6 +22,9 @@ func Generate(configPath, stageStr, image string, servicePath []string) {
 		fmt.Println("--------------------------------")
 		fmt.Println(config.Cfg.Resources)
 		fmt.Println("--------------------------------")
+		if config.Cfg.Resources == nil {
+			config.Cfg.Resources = make(map[string]config.Resource)
+		}
 		config.Cfg.Resources["requests"] = config.Resource{
 			CPU:    "100m",
 			Memory: "128Mi",
