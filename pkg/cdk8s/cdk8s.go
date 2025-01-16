@@ -8,6 +8,7 @@
 package cdk8s
 
 import (
+	"fmt"
 	"github.com/mss-boot-io/cd-template/pkg/config"
 	"github.com/mss-boot-io/cd-template/stage"
 )
@@ -18,6 +19,9 @@ func Generate(configPath, stageStr, image string, servicePath []string) {
 	switch stageStr {
 	case "dev", "test", "local", "alpha", "beta", "staging":
 		config.Cfg.Hpa.Enabled = false
+		fmt.Println("--------------------------------")
+		fmt.Println(config.Cfg.Resources)
+		fmt.Println("--------------------------------")
 		config.Cfg.Resources["requests"] = config.Resource{
 			CPU:    "100m",
 			Memory: "128Mi",
